@@ -22,9 +22,10 @@ inline sq_params sqpoints(double angle) {
     return retval;
 }
 
-inline double piece_wise_integrated(double x, const double a, const double b, const double y_max) {
-    if (x < -b) return 0.0;
-    if (x > b) return 1.0;
+inline double piece_wise_integrated(double const x, const double a, const double b,
+                                    const double y_max) {
+    if (x < -b) { return 0.0; }
+    if (x > b) { return 1.0; }
 
     auto f1 = [a, b, y_max](double x) -> double {
         return 0.5 * y_max * (x + b) * (x + b) / (b - a);
@@ -37,12 +38,12 @@ inline double piece_wise_integrated(double x, const double a, const double b, co
 
     // printf("f1 = %4.2f f2 = %4.2f f3 = %4.2f\n", f1(x), f2(x), f3(x));
 
-    if (x > -a_eps && x < a_eps) return f2(x);
-    if (x < -a) return f1(x);
-    if (x > a) return f3(x);
+    if (x > -a_eps && x < a_eps) { return f2(x); }
+    if (x < -a) { return f1(x); }
+    if (x > a) { return f3(x); }
 
     // no return value, something wrong
-    printf("No case found, this shouyld happen\n");
+    printf("No case found, this should not happen\n");
     return 0.0;
 }
 

@@ -538,8 +538,6 @@ int arecBackProject2D_KB(arecImage images, float *angles, int nangles, arecImage
 #undef x
 #undef y
 
-#define x(i) x[(i)]
-#define y(i, j, k) y[nx * ny * (k) + ((j)) * nx + (i)]
 int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecImage *projstack) {
     /*
     purpose:  y <--- proj(x)
@@ -551,14 +549,7 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
     y        2d output image
     */
 
-    int nx, ny, nz, nrays, nnz, nnz0;
-    double xcent, zcent;
-    int ia, iqx, iqy, i, xc, zc, radius;
-    float ct;
     int status = 0;
-    float *x, *y;
-    int *cord;
-    double cosphi, sinphi;
 
     if (!cylvol.is_cyl) {
         fprintf(stderr, "invalid input volume format. Must be cylindrical!\n");
@@ -566,68 +557,81 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
         return status;
     }
 
-    nx = cylvol.nx;
-    ny = cylvol.ny;
-    nz = cylvol.nz;
-    x = cylvol.data;
+    int const nx = cylvol.nx;
+    int const ny = cylvol.ny;
+    int const nz = cylvol.nz;
 
-    radius = cylvol.radius;
-    nrays = cylvol.nrays;
-    nnz0 = cylvol.nnz;
-    cord = cylvol.cord;
+    float *x = cylvol.data;
 
-    xcent = radius;
-    zcent = radius;
+    double const radius = cylvol.radius;
+    int const nrays = cylvol.nrays;
+    int const nnz0 = cylvol.nnz;
 
-    y = projstack->data;
+    int *cord = cylvol.cord;
+
+    double const xcent = radius;
+    double const zcent = radius;
+
+    float *y = projstack->data;
+
     if (projstack->nx != nx || projstack->ny != ny) {
         fprintf(stderr, "arecProject2D: inconsistent dimension!\n");
         status = 2;
         return status;
     }
-    for (i = 0; i < nx * ny * projstack->nz; i++)
-        y[i] = 0.0;
+    reset(projstack);
 
-    int ind_a = 0;
+    // loops
+    int ia, i, j, iqx, iqy;
+    int nnz, ind_a, ind_y;
+    // variables
+    double cosphi, sinphi;
+    double val0, val1, val2, val3;
+    double w0, w1, w2;
+    double xc, zc, xb, xv;
+    float ct;
+    sq_params p;
+
+    ind_a = 0;
     for (ia = 0; ia < nangles; ia++) {
 
         // make_sq_lut(sq_lut, angles[ia]);
 
         cosphi = cos(angles[ia]);
         sinphi = sin(angles[ia]);
-        auto p = sqpoints(angles[ia]);
+        p = sqpoints(angles[ia]);
 
         nnz = 0;
         for (i = 0; i < nrays; i++) {
-            double const xc = cord(0, i) - xcent;
-            double const zc = cord(1, i) - zcent;
-            double const xb = xc * cosphi + zc * sinphi + xcent;
+            xc = cord(0, i) - xcent;
+            zc = cord(1, i) - zcent;
+            xb = xc * cosphi + zc * sinphi + xcent;
             // take neighbouring weights /pm 1 pixel
             // iqx = (int)roundf(xb);
             iqx = double2int(xb); // this is much faster, make check to see if valid
 
-            double xv = xb - iqx;
-            const double val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
-            const double val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
-            const double val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
-            const double val3 = piece_wise_integrated(xv + 1.5, p.xmin, p.xmax, p.lmax);
+            xv = xb - iqx;
+            val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
+            val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
+            val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
+            val3 = piece_wise_integrated(xv + 1.5, p.xmin, p.xmax, p.lmax);
 
-            double w0 = val1 - val0;
-            double w1 = val2 - val1;
-            double w2 = val3 - val2;
+            w0 = val1 - val0;
+            w1 = val2 - val1;
+            w2 = val3 - val2;
 
-            int ind_y = 0;
+            ind_y = ind_a;
             for (iqy = 0; iqy < ny; iqy++) {
                 ct = x[nnz + iqy];
 
                 if (iqx > 0 && iqx + 1 < nx) {
-                    y[ind_a + ind_y + (iqx - 1)] += w0 * ct;
-                    y[ind_a + ind_y + (iqx)] += w1 * ct;
-                    y[ind_a + ind_y + (iqx + 1)] += w2 * ct;
+                    y[ind_y + (iqx - 1)] += w0 * ct;
+                    y[ind_y + (iqx)] += w1 * ct;
+                    y[ind_y + (iqx + 1)] += w2 * ct;
                 } else {
-                    if (is_inside(iqx - 1, nx)) { y[ind_a + ind_y + (iqx - 1)] += w0 * ct; }
-                    if (is_inside(iqx, nx)) { y[ind_a + ind_y + (iqx)] += w1 * ct; }
-                    if (is_inside(iqx + 1, nx)) { y[ind_a + ind_y + (iqx + 1)] += w2 * ct; }
+                    if (is_inside(iqx - 1, nx)) { y[ind_y + (iqx - 1)] += w0 * ct; }
+                    if (is_inside(iqx, nx)) { y[ind_y + (iqx)] += w1 * ct; }
+                    if (is_inside(iqx + 1, nx)) { y[ind_y + (iqx + 1)] += w2 * ct; }
                 }
                 ind_y += nx;
             } /* end for iqx */
@@ -644,31 +648,19 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
     return status;
 }
 
-#undef x
-#undef y
-
-/*-----------------------------------------------------------------*/
-
-#define y(i) y[(i)]
-#define x(i, j, k) x[nx * ny * (k) + ((j)) * nx + (i)]
-
 int arecBackProject2D_SQ(arecImage const images, float *angles, int nangles, arecImage *bvol) {
-    int nx, ny, nz, i, j, ia, iqx, zc, xc, nnz, nrays, radius, xcent, zcent, nnz0;
-    float xb, dx, dx1m, sx, sy;
-    float w, wp1, wm1;
-    int status = 0;
-    int *cord;
-    float *x, *y;
-    double cosphi, sinphi;
 
-    nx = images.nx;
-    ny = images.ny;
-    nz = images.nz;
+    int status = 0;
+
+    int const nx = images.nx;
+    int const ny = images.ny;
+    int const nz = images.nz;
+
     if (nz != nangles) {
         status = 1;
         return status;
     }
-    x = images.data;
+    float *x = images.data;
 
     if (bvol->nx != nx || bvol->ny != ny) {
         status = -1;
@@ -676,67 +668,86 @@ int arecBackProject2D_SQ(arecImage const images, float *angles, int nangles, are
         return status;
     }
 
-    radius = bvol->radius;
-    nrays = bvol->nrays;
-    nnz0 = bvol->nnz;
-    cord = bvol->cord;
+    double const radius = bvol->radius;
+    int const nrays = bvol->nrays;
+    int const nnz0 = bvol->nnz;
+    int *cord = bvol->cord;
+
     if (!bvol->is_cyl) {
         status = -1;
         fprintf(stderr, "arecBackProject2D: cylindrical volume ");
         fprintf(stderr, "not properly set!\n");
         return status;
     }
-    y = bvol->data;
-    for (i = 0; i < nnz0; i++)
-        y[i] = 0.0;
+    float *y = bvol->data;
+    reset(bvol);
 
-    xcent = radius;
-    zcent = radius;
+    double const xcent = radius;
+    double const zcent = radius;
 
+    // loops
+    int ia, i, j, iqx;
+    int nnz, ind_a, ind_y;
+    // variables
+    double cosphi, sinphi;
+    double val0, val1, val2, val3;
+    double w0, w1, w2;
+    double xc, zc, xb, xv;
+    sq_params p;
+
+    ind_a = 0;
     for (ia = 0; ia < nangles; ia++) {
-
         cosphi = cos(angles[ia]);
         sinphi = sin(angles[ia]);
         auto p = sqpoints(angles[ia]);
-
         nnz = 0;
         for (i = 0; i < nrays; i++) {
-            double const xc = cord(0, i) - xcent;
-            double const zc = cord(1, i) - zcent;
-            double const xb = xc * cosphi + zc * sinphi + xcent;
+            xc = cord(0, i) - xcent;
+            zc = cord(1, i) - zcent;
+            xb = xc * cosphi + zc * sinphi + xcent;
 
             // take neighbouring weights /pm 1 pixel
-            iqx = (int)roundf(xb);
-            double xv = xb - iqx;
-            const double val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
-            const double val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
-            const double val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
-            const double val3 = piece_wise_integrated(xv + 1.5, p.xmin, p.xmax, p.lmax);
+            // iqx = (int)roundf(xb);
+            iqx = double2int(xb); // this is much faster, make check to see if valid
+            xv = xb - iqx;
+            val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
+            val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
+            val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
+            val3 = piece_wise_integrated(xv + 1.5, p.xmin, p.xmax, p.lmax);
 
-            double w0 = val1 - val0;
-            double w1 = val2 - val1;
-            double w2 = val3 - val2;
+            w0 = val1 - val0;
+            w1 = val2 - val1;
+            w2 = val3 - val2;
 
             if (iqx > 0 && iqx + 1 < nx) { // all possible pixles inside
+                ind_y = ind_a;
                 for (j = 0; j < ny; j++) {
-                    y(nnz + j) += w0 * x(iqx - 1, j, ia);
-                    y(nnz + j) += w1 * x(iqx, j, ia);
-                    y(nnz + j) += w2 * x(iqx + 1, j, ia);
+                    y[nnz + j] += w0 * x[iqx - 1 + ind_y];
+                    y[nnz + j] += w1 * x[iqx + ind_y];
+                    y[nnz + j] += w2 * x[iqx + 1 + ind_y];
+                    ind_y += nx;
                 }
             } else { // check boundaries separately
                 if (is_inside(iqx - 1, nx)) {
+                    ind_y = ind_a;
                     for (j = 0; j < ny; j++) {
-                        y(nnz + j) += w0 * x(iqx - 1, j, ia);
+                        y[nnz + j] += w0 * x[iqx - 1 + ind_y];
+                        ind_y += nx;
                     }
                 }
                 if (is_inside(iqx, nx)) {
+                    ind_y = ind_a;
                     for (j = 0; j < ny; j++) {
-                        y(nnz + j) += w1 * x(iqx, j, ia);
+
+                        y[nnz + j] += w1 * x[iqx + ind_y];
+                        ind_y += nx;
                     }
                 }
                 if (is_inside(iqx + 1, nx)) {
+                    ind_y = ind_a;
                     for (j = 0; j < ny; j++) {
-                        y(nnz + j) += w2 * x(iqx + 1, j, ia);
+                        y[nnz + j] += w2 * x[iqx + 1 + ind_y];
+                        ind_y += nx;
                     }
                 }
             }
@@ -748,10 +759,8 @@ int arecBackProject2D_SQ(arecImage const images, float *angles, int nangles, are
             status = 2;
             break;
         }
+        ind_a += nx * ny;
     } /* end for ia */
 
     return status;
 }
-
-#undef x
-#undef y
