@@ -56,5 +56,6 @@ int arecRotCCImages2(MPI_Comm comm, arecImage images1, arecImage images2, int r1
 float findPeak1d(int length, float *data);
 int findMaxIndex(float *data, int N);
 
+void soft_noneg(arecImage *image);
 void reset(arecImage *image);
 void print(arecImage *image);

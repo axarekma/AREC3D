@@ -917,6 +917,22 @@ void reset(arecImage *image) {
     return;
 }
 
+void soft_noneg(arecImage *image) {
+    if (image->is_cyl == 0) {
+        int length = image->nx * image->ny * image->nz;
+        for (size_t i = 0; i < length; i++) {
+            if (image->data[i] < 0.0f) image->data[i] *= 0.5f;
+        }
+    }
+    if (image->is_cyl == 1) {
+        int length = image->nnz;
+        for (size_t i = 0; i < length; i++) {
+            if (image->data[i] < 0.0f) image->data[i] *= 0.5f;
+        }
+    }
+    return;
+}
+
 void print(arecImage *image) {
     if (image->is_cyl == 0) {
         printf("\n Content of cubevol \n");
