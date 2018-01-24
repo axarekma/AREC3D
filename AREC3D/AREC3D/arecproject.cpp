@@ -610,7 +610,7 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
             // iqx = (int)roundf(xb);
             iqx = double2int(xb); // this is much faster, make check to see if valid
 
-            xv = xb - iqx;
+            xv = iqx - xb;
             val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
             val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
             val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
@@ -709,7 +709,7 @@ int arecBackProject2D_SQ(arecImage const images, float *angles, int nangles, are
             // take neighbouring weights /pm 1 pixel
             // iqx = (int)roundf(xb);
             iqx = double2int(xb); // this is much faster, make check to see if valid
-            xv = xb - iqx;
+            xv = iqx - xb;
             val0 = piece_wise_integrated(xv - 1.5, p.xmin, p.xmax, p.lmax);
             val1 = piece_wise_integrated(xv - 0.5, p.xmin, p.xmax, p.lmax);
             val2 = piece_wise_integrated(xv + 0.5, p.xmin, p.xmax, p.lmax);
