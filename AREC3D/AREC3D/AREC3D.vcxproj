@@ -163,6 +163,7 @@
     <ClInclude Include="arecproject.h" />
     <ClInclude Include="arecsirt.h" />
     <ClInclude Include="arecsirt_KB.h" />
+    <ClInclude Include="areccgls_stat.h" />
     <ClInclude Include="edgeslope.h" />
     <ClInclude Include="imagetools.h" />
     <ClInclude Include="ReadAndDistAngles.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="arecproject.cpp" />
     <ClCompile Include="arecsirt.cpp" />
     <ClCompile Include="arecsirt_KB.cpp" />
+    <ClCompile Include="areccgls_stat.cpp" />
     <ClCompile Include="edgeslope.cpp" />
     <ClCompile Include="imagetools.cpp" />
     <ClCompile Include="ReadAndDistAngles.cpp" />

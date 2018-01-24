@@ -60,6 +60,9 @@
     <ClInclude Include="ReadAndDistAngles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="areccgls_stat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AREC3D.cpp">
@@ -102,6 +105,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ReadAndDistAngles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="areccgls_stat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
