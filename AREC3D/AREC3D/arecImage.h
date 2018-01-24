@@ -8,7 +8,7 @@ typedef struct Image {
     int ny;
     int nz;
     /* cylindrincal 3D image */
-    int radius;
+    double radius;
     int height;
     int nnz;
     int nrays;
@@ -26,7 +26,7 @@ typedef struct Image {
 
 int arecAllocateCBImage(arecImage *cbimage, int nx, int ny, int nz);
 int arecAllocateCylImage(arecImage *cylimage, double radius, int height);
-int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int ycent, int radius,
+int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int ycent, double radius,
                 int height);
 int ImageCyl2CB(arecImage cylimage, arecImage cbimage, int nx, int ny, int nz);
 void arecImageFree(arecImage *image);

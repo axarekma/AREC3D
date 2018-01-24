@@ -85,7 +85,7 @@ int arecAllocateCylImage(arecImage *cylimage, double radius, int height) {
     return status;
 }
 
-int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int zcent, int radius,
+int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int zcent, double radius,
                 int height) {
     int nx, ny, nz, r2, xs, xx, zz, zs, ix, iy, iz, nnz, nrays, nnz0, nrays0;
     float *cylval, *cube;
@@ -111,8 +111,8 @@ int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int zcent, int
     cylval = cylimage.data;
     cord = cylimage.cord;
 
-    xcent = radius + 1;
-    zcent = radius + 1;
+    xcent = radius;
+    zcent = radius;
 
     if (nnz0 <= 0 || nrays0 <= 0 || radius <= 0 || height <= 0) {
         fprintf(stderr, "ImageCB2Cy: cylimage not properly created!\n");
@@ -139,12 +139,13 @@ int ImageCB2Cyl(arecImage cbimage, arecImage cylimage, int xcent, int zcent, int
             xx = xs * xs;
             if ((xx + zz) <= r2) {
                 for (iy = 0; iy < ny; iy++) {
-                    nnz++;
+
                     cylval(nnz) = cube(ix, iy, iz);
+                    nnz++;
                 }
-                nrays++;
                 cord(0, nrays) = ix;
                 cord(1, nrays) = iz;
+                nrays++;
             } // end if (xx + yy) <= r2
         }     // end for ix
     }         // end for iy
@@ -160,7 +161,8 @@ EXIT:
 }
 
 int ImageCyl2CB(arecImage cylimage, arecImage cbimage, int nx, int ny, int nz) {
-    int radius, height, nrays, nnz;
+    double radius;
+    int height, nrays, nnz;
     int ix, iy, iz, j, nnz0;
     int *cord;
     float *cylval = NULL, *cube = NULL;
@@ -208,13 +210,14 @@ int ImageCyl2CB(arecImage cylimage, arecImage cbimage, int nx, int ny, int nz) {
         iz = cord(1, j);
         if (iz < nz && ix < nx) {
             for (iy = 0; iy < ny; iy++) {
-                nnz++;
+
                 if (nnz > nnz0) {
                     printf("ImageCyl2CB: iz out of bound, nnz = %d, nnz0 = %d\n", nnz, nnz0);
                     status = -2;
                     goto EXIT;
                 }
                 cube(ix, iy, iz) = cylval(nnz);
+                nnz++;
             }
         } else {
             printf("ImageCyl2CB: ix, iz, out of bound\n");
