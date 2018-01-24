@@ -7,6 +7,7 @@
 #include "arecImage.h"
 #include "areccgls_stat.h"
 #include "arecproject.h"
+#include "imagetools.h"
 
 int init_weights(MPI_Comm comm, arecImage projections, arecImage *weights) {
     int ierr = 0;
@@ -30,7 +31,9 @@ int init_weights(MPI_Comm comm, arecImage projections, arecImage *weights) {
         dataw[i] = exp(-datap[i]);
     }
 
-    // todo add window function to weights tukey is probably good
+    for (int i = 0; i < nz; i++) {
+        tukey_filter_inplace(&dataw[nx * ny * i], nx, ny, 0.5);
+    }
     return 0;
 }
 
@@ -184,7 +187,7 @@ int cyl_cgls_stat(MPI_Comm comm, arecImage images, float *angles, arecImage *xcv
 
         pnorm2 = 0.0;
         for (j = 0; j < nx * ny * nz; j++)
-            pnorm2 += prjdata[j] * prjdata[j] * wdata[i]; // stat weight
+            pnorm2 += prjdata[j] * prjdata[j] * wdata[j]; // stat weight
 
         pnorm2sum = 0.0;
         MPI_Allreduce(&pnorm2, &pnorm2sum, 1, MPI_DOUBLE, MPI_SUM, comm);
@@ -197,7 +200,7 @@ int cyl_cgls_stat(MPI_Comm comm, arecImage images, float *angles, arecImage *xcv
         }
 
         for (j = 0; j < nx * ny * nz; j++)
-            sdata[j] = sdata[j] - alpha * prjdata[j] * wdata[i]; // stat weight
+            sdata[j] = sdata[j] - alpha * prjdata[j] * wdata[j]; // stat weight
 
         status = arecBackProject2D(simages, angles, nangles, &gradvol);
         if (status != 0) goto EXIT;
