@@ -13,7 +13,7 @@ void shearY_circ(float *img, float shear, int nx, int ny);
 void blackmanHarris_filter(float *in, float *out, int nx, int ny);
 void blackmanHarris_filter_normalize(float *in, float *out, int nx, int ny);
 void tukey_filter(float *in, float *out, int nx, int ny, double alpha);
-void tukey_filter_inplace(float *in, int nx, int ny, double alpha);
+void tukey_filter2d_inplace(float *in, int nx, int ny, double alpha);
 
 double getNormalizedCrossCorrelation(float *im1, float *im2, int nx, int ny);
 double getNormalizedCrossCorrelationWithFilter(float *im1, float *im2, int nx, int ny);

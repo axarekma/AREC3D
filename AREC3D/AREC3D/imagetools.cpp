@@ -364,7 +364,7 @@ void tukey_filter(float *in, float *out, int nx, int ny, double alpha) {
     }
 }
 
-void tukey_filter_inplace(float *in, int nx, int ny, double alpha) {
+void tukey_filter2d_inplace(float *in, int nx, int ny, double alpha) {
     double xa = (0.5 * alpha * (nx - 1));
     double xb = (1.0 - 0.5 * alpha) * (nx - 1);
     double ya = (0.5 * alpha * (ny - 1));
@@ -396,7 +396,7 @@ void tukey_filter_inplace(float *in, int nx, int ny, double alpha) {
             else
                 hx = 1.0;
 
-            in[y * nx + x] *= hx * hy;
+            in[y * nx + x] *= hx;
         }
     }
 }

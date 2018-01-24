@@ -32,7 +32,7 @@ int init_weights(MPI_Comm comm, arecImage projections, arecImage *weights) {
     }
 
     for (int i = 0; i < nz; i++) {
-        tukey_filter_inplace(&dataw[nx * ny * i], nx, ny, 0.5);
+        tukey_filter2d_inplace(&dataw[nx * ny * i], nx, ny, 0.5);
     }
 
     float minval = 1e6f;
