@@ -35,6 +35,19 @@ reverse loop increment:
     5.817e+01
     4.566e+01
     
+remove loop index addition:
+    4.291e+01
+    4.251e+01
+
+counts for pwi:    
+1:62050152 
+2:62050152 
+3:15896528 
+4:15896528 
+5:25248016
+    
+
+    
  
 
     
