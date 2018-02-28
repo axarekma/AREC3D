@@ -6,6 +6,7 @@
 #data files
 *.rawtlt
 *.mrc
+*.st
 input
 
 # User-specific files

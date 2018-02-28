@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AREC3D", "AREC3D\AREC3D.vcxproj", "{96405009-293A-4855-909F-5E2953BAE477}"
 EndProject
@@ -10,10 +10,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AREC3D_test", "AREC3D_test\
 		{96405009-293A-4855-909F-5E2953BAE477} = {96405009-293A-4855-909F-5E2953BAE477}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Prealign", "Prealign\Prealign.vcxproj", "{04BEA985-206E-4EDE-9C94-07C6443C4CB1}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -37,11 +36,22 @@ Global
 		{22650B25-3767-4185-ABDB-5037AC0C8D23}.Release|x64.Build.0 = Release|x64
 		{22650B25-3767-4185-ABDB-5037AC0C8D23}.Release|x86.ActiveCfg = Release|Win32
 		{22650B25-3767-4185-ABDB-5037AC0C8D23}.Release|x86.Build.0 = Release|Win32
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Debug|x64.ActiveCfg = Debug|x64
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Debug|x64.Build.0 = Debug|x64
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Debug|x86.ActiveCfg = Debug|Win32
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Debug|x86.Build.0 = Debug|Win32
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Release|x64.ActiveCfg = Release|x64
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Release|x64.Build.0 = Release|x64
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Release|x86.ActiveCfg = Release|Win32
+		{04BEA985-206E-4EDE-9C94-07C6443C4CB1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2403D1AB-164A-424F-8782-695DA4441716}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
