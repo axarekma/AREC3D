@@ -20,9 +20,6 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CFLAGS = -O3 -fopenmp
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++1y -g -Wall -Wno-unknown-pragmas -O3 -fopenmp
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
-
 prealign: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBRARY) -o $(TARGET)
 
