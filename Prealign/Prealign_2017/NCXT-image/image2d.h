@@ -61,8 +61,8 @@ template <class T> class image2d {
         return m_data[m_nx * j + i];
     }
     T &operator()(int i, int j) {
-        assert(i >= 0 && i < static_cast<int>m_nx));
-        assert(j >= 0 && j < static_cast<int>m_ny));
+        assert(i >= 0 && i < static_cast<int>(m_nx));
+        assert(j >= 0 && j < static_cast<int>(m_ny));
         return m_data[m_nx * j + i];
     }
     T operator[](int i) const { return m_data[i]; }
