@@ -15,7 +15,7 @@ void TubeAlign::savePreview(std::string file_name) {
 
     image_stack temp = image_stack(m_img);
 
-    for (int iz = 0; iz < temp.size(); iz++) {
+    for (size_t iz = 0; iz < temp.size(); iz++) {
         float amax =
             static_cast<float>(*std::max_element(temp[iz].m_data.begin(), temp[iz].m_data.end()));
 
@@ -49,7 +49,7 @@ double TubeAlign::globalRotationFromCylinder() {
     vector<double> slope2_err(m_img.size());
     vector<double> mslope_err(m_img.size());
 
-    for (int i = 0; i < m_img.size(); ++i) {
+    for (size_t i = 0; i < m_img.size(); ++i) {
         slope1[i] = atan(tube[i].p1_left);
         slope2[i] = atan(tube[i].p1_right);
         mslope[i] = (slope1[i] + slope2[i]) / 2.0;
@@ -88,12 +88,12 @@ vector<int> TubeAlign::getXTranslationsFromCylinder() {
     updatecapillary_data();
 
     // set up translations for x-direction
-    for (int i = 0; i < m_img.size(); i++) {
+    for (size_t i = 0; i < m_img.size(); i++) {
         double com_x = tube[i].COM;
         double minleft = tube[i].min_left;
         double maxright = tube[i].max_right;
         if (minleft > maxright)
-            printf("Slopes in wrong order at [%d] %4.2f  %4.2f--%4.2f]\n ", i, com_x, minleft,
+            printf("Slopes in wrong order at [%zu] %4.2f  %4.2f--%4.2f]\n ", i, com_x, minleft,
                    maxright);
 
         sX[i] = round(com_x - x_center);
@@ -202,8 +202,7 @@ double TubeAlign::profile_cc_img(image2d<float> &yprofiles) {
 //}
 
 image2d<float> TubeAlign::getProfiles() {
-    int nx = m_img[0].nx();
-    int ny = m_img[0].ny();
+    int ny = static_cast<int>(m_img[0].ny());
     int nz = static_cast<int>(m_img.size());
 
     int prof_x{m_img[0].ny()}; // assuming all images are the same size
@@ -241,7 +240,6 @@ vector<int> TubeAlign::getYTranslationsFromProfile() {
     printf("Aligning y-shifts with density profile\n");
     printf("======================================\n");
     // Store profiles in array
-    int prof_x = m_img[0].ny(); // assuming all images are the same size
     int prof_y = static_cast<int>(m_img.size());
 
     vector<double> profile_sX(m_img.size(), 0.0);

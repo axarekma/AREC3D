@@ -6,6 +6,9 @@
 using namespace std;
 
 template <class T> class image3d {
+  public:
+    vector<T> m_data;
+
   private:
     size_t m_nx;
     size_t m_ny;
@@ -13,7 +16,6 @@ template <class T> class image3d {
 
   public:
     ~image3d(){};
-    vector<T> m_data;
 
     image3d() : m_data(vector<T>()), m_nx(0), m_ny(0), m_nz(0){};
 

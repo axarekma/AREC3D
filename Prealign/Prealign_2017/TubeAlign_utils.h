@@ -35,21 +35,21 @@ struct tube_data {
 // 1D ARRAY FUNCTIONS
 template <class T> T getMeanValue(T *data, size_t N) {
     T val = 0.0;
-    for (int i = 0; i < N; i++) {
+    for (size_t i = 0; i < N; i++) {
         val += data[i];
     }
     return val / N;
 }
 template <class T> T getMinValue(T *data, size_t N) {
     T val = data[0];
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
         if (data[i] < val) val = data[i];
 
     return val;
 }
 template <class T> T getMaxValue(T *data, size_t N) {
     T val = data[0];
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
         if (data[i] > val) val = data[i];
     return val;
 }

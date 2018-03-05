@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <vector>
@@ -55,13 +56,13 @@ template <class T> class image2d {
     }
 
     T operator()(int i, int j) const {
-        assert(i >= 0 && i < m_nx);
-        assert(j >= 0 && j < m_ny);
+        assert(i >= 0 && i < static_cast<int>(m_nx);
+        assert(j >= 0 && j < static_cast<int>(m_ny);
         return m_data[m_nx * j + i];
     }
     T &operator()(int i, int j) {
-        assert(i >= 0 && i < m_nx);
-        assert(j >= 0 && j < m_ny);
+        assert(i >= 0 && i < static_cast<int>m_nx));
+        assert(j >= 0 && j < static_cast<int>m_ny));
         return m_data[m_nx * j + i];
     }
     T operator[](int i) const { return m_data[i]; }
