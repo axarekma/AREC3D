@@ -1,8 +1,8 @@
 #pragma once
-#include "NCXT-image\image2d.h"
-#include "NCXT-image\image3d.h"
-#include "NCXT-image\image_utils.h"
-#include "NCXT-image\mrc_file.h"
+#include "./NCXT-image/image2d.h"
+#include "./NCXT-image/image3d.h"
+#include "./NCXT-image/image_utils.h"
+#include "./NCXT-image/mrc_file.h"
 #include "TubeAlign_utils.h"
 #include <algorithm>
 #include <memory>
