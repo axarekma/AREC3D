@@ -273,7 +273,7 @@ std::vector<double> loadAngles(std::string filename) {
 void write_raw_pnm(const char *fname, char const *pixels, int w, int h) {
     FILE *f;
     // errno_t err = fopen_s(&f, fname, "wb");
-    f = fopen(&f, fname, "wb");
+    f = fopen(fname, "wb");
     if (!f)
         printf("Ouch!  Cannot create file.\n");
     else {

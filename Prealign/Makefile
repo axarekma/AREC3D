@@ -5,15 +5,20 @@ CC := g++ # This is the main compiler
 TARGET ?= ./bin/prealign
 SRC_DIRS ?= ./Prealign_2017/
 
+DEFINE = -DUSE_MPI
+INC_MPI = -I /usr/include/mpich/
+FFTLIB ?= -L/usr/lib/x86_64-linux-gnu/ -lfftw3f 
+
 SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 
+LIBRARY = $(FFTLIB) -lm
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CFLAGS = -O3 -fopenmp
-CPPFLAGS ?= $(INC_MPI) $(INC_FLAGS) -MMD -MP -std=c++1y -g -Wall -Wno-unknown-pragmas -O3 -fopenmp
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++1y -g -Wall -Wno-unknown-pragmas -O3 -fopenmp
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
