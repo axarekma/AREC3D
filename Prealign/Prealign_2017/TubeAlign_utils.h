@@ -9,7 +9,7 @@
 #include <sstream>
 #include <vector>
 
-#include "NCXT-image\image2d.h"
+#include "./NCXT-image/image2d.h"
 #include "mpfit.h"
 // utilities
 using namespace std;
