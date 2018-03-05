@@ -1,5 +1,5 @@
 #include "TubeAlign_utils.h"
-#include "NCXT-image\image2d.h"
+#include "./NCXT-image/image2d.h"
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -177,7 +177,7 @@ void cleanEdge(int *Y, int size_Y, double TH, double p1, double p2) {
         if (abs(nVX * (j) + nVY * (Y[j] - p2)) > TH) Y[j] = -1;
 }
 
-// IMAGE OPERATORS
+    // IMAGE OPERATORS
 
 #define B(i) B[(i)-1]
 void PRB1D(double const *B, int NPOINT, double *POS) {
