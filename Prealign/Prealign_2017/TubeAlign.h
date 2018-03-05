@@ -75,7 +75,7 @@ class TubeAlign {
     double profile_gc_img(image2d<float> &yprofiles);
     double profile_cc_img(image2d<float> &yprofiles);
 
-    image2d<float> TubeAlign::getProfiles();
+    image2d<float> getProfiles();
     vector<int> getYTranslationsFromProfile();
     vector<int> getXTranslationsFromProfile();
 
