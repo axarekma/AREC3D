@@ -36,10 +36,10 @@ void print_hint() {
 
 int parse_keyvalue(arecparam *param, const char *key, const char *value, int &havedata) {
     if (strncmp(key, "data", 4) == 0) {
-        strcpy_s(param->stackfname, value);
+        strcpy(param->stackfname, value);
         havedata = 1;
     } else if (strncmp(key, "angle", 5) == 0) {
-        strcpy_s(param->anglefname, value);
+        strcpy(param->anglefname, value);
         param->haveangles = 1;
     } else if (strncmp(key, "cropx", 5) == 0) {
         param->cropx = atoi(value);
@@ -58,7 +58,7 @@ int parse_keyvalue(arecparam *param, const char *key, const char *value, int &ha
     } else if (strncmp(key, "maxit", 5) == 0) {
         param->maxit = atoi(value);
     } else if (strncmp(key, "output", 6) == 0) {
-        strcpy_s(param->voutfname, value);
+        strcpy(param->voutfname, value);
     } else if (strncmp(key, "lcut", 4) == 0) {
         param->lcut = atoi(value);
     } else if (strncmp(key, "rcut", 4) == 0) {
@@ -184,7 +184,7 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
     param->thresh = 0.5;
 
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, filename, "rb");
+        fp = fopen(filename, "rb");
         if (!fp) {
             fprintf(stderr, "failed to open %s\n", filename);
             status = -1;
@@ -194,12 +194,12 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
     if (status != 0) return status;
 
     if (mypid == 0) {
-        while (fscanf_s(fp, "%s %s", key, value) != EOF) {
+        while (fscanf(fp, "%s %s", key, value) != EOF) {
             if (strncmp(key, "data", 4) == 0) {
-                strcpy_s(param->stackfname, value);
+                strcpy(param->stackfname, value);
                 havedata = 1;
             } else if (strncmp(key, "angle", 5) == 0) {
-                strcpy_s(param->anglefname, value);
+                strcpy(param->anglefname, value);
                 param->haveangles = 1;
             } else if (strncmp(key, "cropx", 5) == 0) {
                 param->cropx = atoi(value);
@@ -218,7 +218,7 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
             } else if (strncmp(key, "maxit", 5) == 0) {
                 param->maxit = atoi(value);
             } else if (strncmp(key, "output", 6) == 0) {
-                strcpy_s(param->voutfname, value);
+                strcpy(param->voutfname, value);
             } else if (strncmp(key, "lcut", 4) == 0) {
                 param->lcut = atoi(value);
             } else if (strncmp(key, "rcut", 4) == 0) {
@@ -298,10 +298,10 @@ void setparams(arecparam inparam, int nx, int ny, int *radius, int *height, int 
         *ycent = (ny - 1) / 2;
     }
     if (inparam.voutfname != NULL) {
-        strcpy_s(voutfname, 200, inparam.voutfname); // FIXME!
+        strcpy(voutfname, inparam.voutfname); // FIXME!
     } else {
         /* no output filename provided */
-        strcpy_s(voutfname, 200, "myvolsirt.mrc"); // FIXME!
+        strcpy(voutfname, "myvolsirt.mrc"); // FIXME!
     }
     *lcut = inparam.lcut;
     *rcut = inparam.rcut;

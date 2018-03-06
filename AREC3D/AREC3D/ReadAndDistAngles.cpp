@@ -15,7 +15,7 @@ int countrows(char *fname) {
     int nangles;
     FILE *fp;
 
-    errno_t err = fopen_s(&fp, fname, "rb");
+    fp = fopen(fname, "rb");
     if (!fp) {
         fprintf(stderr, "%s does not exist!\n", fname);
         return -1;
@@ -60,7 +60,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
 
     t0 = MPI_Wtime();
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, angfname, "rb");
+        fp = fopen(angfname, "rb");
         if (!fp) ierr = 1;
     }
     MPI_Bcast((void *)&ierr, 1, MPI_INT, 0, gcomm);
@@ -70,7 +70,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
     } else {
         if (mypid == 0) {
             for (i = 0; i < nangles; i++) {
-                fscanf_s(fp, "%f", &angles[i]);
+                if (fscanf(fp, "%f", &angles[i])) {}
                 if (i == 0) {
                     if (angles[i] > 180.0) {
                         printf("Changing angle0 of %d from %4.2f", nangles, angles[i]);
@@ -95,7 +95,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
     if (mypid == 0) { printf("I/O time for reading angles = %11.3e\n", MPI_Wtime() - t0); }
     /* convert angles to radian */
     for (i = 0; i < nangles; i++)
-        angles[i] = angles[i] / 180.0 * PI;
+        angles[i] = angles[i] / 180.0 * piFunc();
 EXIT:
     return ierr;
 }

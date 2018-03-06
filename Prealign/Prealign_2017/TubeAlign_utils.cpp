@@ -1,6 +1,7 @@
 #include "TubeAlign_utils.h"
 #include "./NCXT-image/image2d.h"
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>

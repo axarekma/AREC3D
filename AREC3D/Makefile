@@ -1,9 +1,9 @@
  
-CC := g++ # This is the main compiler
+CC := mpic++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 
-TARGET ?= ./bin/prealign
-SRC_DIRS ?= ./Prealign_2017/
+TARGET ?= ./bin/arec3d
+SRC_DIRS ?= ./AREC3D/
 
 DEFINE = -DUSE_MPI
 INC_MPI = -I /usr/include/mpich/
@@ -13,14 +13,15 @@ SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 
-LIBRARY = $(FFTLIB) -lm
+LIBRARY =  $(FFTLIB) -lm
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CFLAGS = -O3 -fopenmp
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++14 -g -Wall -Wno-unknown-pragmas -O3 -fopenmp
+CPPFLAGS ?= $(INC_MPI) $(INC_FLAGS) -MMD -MP -std=c++14 -g -Wunreachable-code -Wshadow -Wextra -Wall -Wno-unknown-pragmas -O3 -fopenmp
 
-prealign: $(OBJS)
+
+AREC3D: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBRARY) -o $(TARGET)
 
 .PHONY: clean

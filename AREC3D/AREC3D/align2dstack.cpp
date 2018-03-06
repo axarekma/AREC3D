@@ -385,7 +385,7 @@ void align2dstack(MPI_Comm comm, arecImage imagestack, arecImage alignedstack, i
 
     /* write shifts to a LOG file */
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, "arec3dLOG.iter0", "wb");
+        fp = fopen("arec3dLOG.iter0", "wb");
         sxbuf = (float *)malloc(nzloc * sizeof(float));
         sybuf = (float *)malloc(nzloc * sizeof(float));
         for (i = 0; i < ncpus; i++) {
@@ -602,7 +602,7 @@ void fshift2d(int nx, int ny, float *imagein, float *imageout, float sx, float s
     /* multiply the phase factor */
     for (j = 0; j < ny; j++) {
         for (i = 0; i < nx; i++) {
-            phase = -2.0 * PI * (sx * kx[i] + sy * ky[j]);
+            phase = -2.0 * piFunc() * (sx * kx[i] + sy * ky[j]);
             cosph = cos(phase);
             sinph = sin(phase);
             fr = ff[nx * j + i][0];
@@ -714,8 +714,8 @@ void getscf(int nx, int ny, float *x, float *y) {
     fftwf_free(fy);
 }
 
-/* change from image stored in Cartesian coordinates to that stored in
-   polar coordinates using linear interpolation */
+    /* change from image stored in Cartesian coordinates to that stored in
+       polar coordinates using linear interpolation */
 
 #define cdata(i, j) cdata[nx * (j) + (i)]
 #define pdata(i, j) pdata[nang * (j) + (i)]
@@ -737,7 +737,7 @@ void cart2po(int nx, int ny, float *cdata, int nang, int r1, int r2, float *pdat
         for (i = 0; i < nang; i++) {
 
             /* Compute the angle. */
-            ang = 2.0 * PI / ((float)nang * i);
+            ang = 2.0 * piFunc() / ((float)nang * i);
 
             x = j * cos(ang) + xcent;
             y = j * sin(ang) + ycent;
@@ -777,8 +777,9 @@ void rotate2d(int NSAM, int NROW, float *imagein, float *imageout, float THETA) 
     int NSAMH, NROWH, KCENT, ICENT, JJ;
     double YCOD, YSID, COD, SID, X, Y, XOLD, YOLD, YDIF, YREM, XDIF, XREM;
     int I, K, IXOLD, IYOLD, NADDR;
+    double PI = piFunc();
 
-    THETA = THETA * PI / 180.0;
+    THETA = THETA * piFunc() / 180.0;
 
     NSAMH = NSAM / 2;
     NROWH = NROW / 2;
@@ -831,8 +832,9 @@ void to_polar(int NSAM, int NROW, int R1, int R2, float *X, float *Y) {
 
     int IXC, IYC, NSAMP, NROWP, I, J;
     double DFI, FI, XS, YS;
+    double PI = piFunc();
 
-    NSAMP = (int)(2 * PI * R2);
+    NSAMP = (int)(2 * piFunc() * R2);
     NROWP = R2 - R1 + 1;
 
     IXC = NSAM / 2 + 1;
@@ -1102,20 +1104,20 @@ void speak(int nx, int ny, float *data, float *xt, float *yt) {
 }
 #undef rsq
 #undef data
-/*---------------------------------------------*/
-/* quad2dfit
-C
-C PARABOLIC FIT TO 3 BY 3 PEAK NEIGHBORHOOD
-C
-C THE FORMULA FOR PARABOLOID TO BE FIITED INTO THE NINE POINTS IS:
-C
-C	F = C1 + C2*Y + C3*Y**2 + C4*X + C5*XY + C6*X**2
-C
-C THE VALUES OF THE COEFFICIENTS C1 - C6 ON THE BASIS OF THE
-C NINE POINTS AROUND THE PEAK, AS EVALUATED BY ALTRAN:
-C
-C adapted from fortran code in SPIDER
-*/
+    /*---------------------------------------------*/
+    /* quad2dfit
+    C
+    C PARABOLIC FIT TO 3 BY 3 PEAK NEIGHBORHOOD
+    C
+    C THE FORMULA FOR PARABOLOID TO BE FIITED INTO THE NINE POINTS IS:
+    C
+    C	F = C1 + C2*Y + C3*Y**2 + C4*X + C5*XY + C6*X**2
+    C
+    C THE VALUES OF THE COEFFICIENTS C1 - C6 ON THE BASIS OF THE
+    C NINE POINTS AROUND THE PEAK, AS EVALUATED BY ALTRAN:
+    C
+    C adapted from fortran code in SPIDER
+    */
 
 #define Z(i, j) Z[((j)-1) * 3 + (i)-1]
 

@@ -11,7 +11,6 @@ typedef struct {
 inline sq_params sqpoints(double angle) {
     double cosphi = cos(angle);
     double sinphi = sin(angle);
-    const double pi_2 = 1.57079632679;
     double cms = fabs(0.5 * (cosphi - sinphi));
     double cps = fabs(0.5 * (cosphi + sinphi));
 
@@ -27,12 +26,12 @@ inline double piece_wise_integrated(double const x, const double a, const double
     if (x < -b) { return 0.0; }
     if (x > b) { return 1.0; }
 
-    auto f1 = [a, b, y_max](double x) -> double {
-        return 0.5 * y_max * (x + b) * (x + b) / (b - a);
+    auto f1 = [a, b, y_max](double arg) -> double {
+        return 0.5 * y_max * (arg + b) * (arg + b) / (b - a);
     };
-    auto f2 = [a, b, y_max](double x) -> double { return 0.5 * y_max * (b + a) + y_max * x; };
-    auto f3 = [a, b, y_max](double x) -> double {
-        return 0.5 * y_max * (b - x) * (b - x) / (a - b) + 1.0;
+    auto f2 = [a, b, y_max](double arg) -> double { return 0.5 * y_max * (b + a) + y_max * arg; };
+    auto f3 = [a, b, y_max](double arg) -> double {
+        return 0.5 * y_max * (b - arg) * (b - arg) / (a - b) + 1.0;
     };
     const double a_eps = a + 1e-3;
 

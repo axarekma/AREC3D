@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "arecConstants.h"
+// #include "arecConstants.h"
 #include "arecImage.h"
 #include "arecproject.h"
 
@@ -27,7 +27,7 @@ int arecProject2D(arecImage cylvol, float *angles, int nangles, arecImage *projs
     y        2d output image
     */
 
-    int nx, ny, nz, nrays, nnz, nnz0, xcent, zcent;
+    int nx, ny, nrays, nnz, nnz0, xcent, zcent;
     int ia, iqx, iqy, i, xc, zc, radius;
     float ct, dipx, dipx1m, xb;
     int status = 0;
@@ -35,7 +35,7 @@ int arecProject2D(arecImage cylvol, float *angles, int nangles, arecImage *projs
     int *cord;
     double cosphi, sinphi;
 
-    float sx, sy;
+    // float sx, sy;
 
     if (!cylvol.is_cyl) {
         fprintf(stderr, "invalid input volume format. Must be cylindrical!\n");
@@ -44,12 +44,11 @@ int arecProject2D(arecImage cylvol, float *angles, int nangles, arecImage *projs
     }
 
     /* no translation at the moment */
-    sx = 0.0;
-    sy = 0.0;
+    // sx = 0.0;
+    // sy = 0.0;
 
     nx = cylvol.nx;
     ny = cylvol.ny;
-    nz = cylvol.nz;
     x = cylvol.data;
 
     radius = cylvol.radius;
@@ -76,7 +75,7 @@ int arecProject2D(arecImage cylvol, float *angles, int nangles, arecImage *projs
         for (i = 1; i <= nrays; i++) {
             xc = cord(1, i) - xcent;
             zc = cord(2, i) - zcent;
-            xb = xc * cosphi + zc * sinphi + xcent + sx;
+            xb = xc * cosphi + zc * sinphi + xcent;
             // only need 1D interpolation, compute weights
             iqx = floor(xb);
             dipx = xb - iqx;
@@ -102,7 +101,7 @@ int arecProject2D(arecImage cylvol, float *angles, int nangles, arecImage *projs
 #undef x
 #undef y
 
-/*-----------------------------------------------------------------*/
+    /*-----------------------------------------------------------------*/
 
 #define y(i) y[(i)-1]
 #define x(i, j, k) x[nx * ny * (k) + ((j)-1) * nx + (i)-1]
@@ -365,7 +364,7 @@ int arecProject2D_KB(arecImage cylvol, float *angles, int nangles, arecImage *pr
     int *cord;
     double cosphi, sinphi;
 
-    float sx, sy;
+    // float sx, sy;
 
     if (!cylvol.is_cyl) {
         fprintf(stderr, "invalid input volume format. Must be cylindrical!\n");
@@ -375,7 +374,7 @@ int arecProject2D_KB(arecImage cylvol, float *angles, int nangles, arecImage *pr
 
     int const nx = cylvol.nx;
     int const ny = cylvol.ny;
-    int const nz = cylvol.nz;
+    // int const nz = cylvol.nz;
     x = cylvol.data;
 
     double const radius = cylvol.radius;
@@ -440,7 +439,7 @@ int arecProject2D_KB(arecImage cylvol, float *angles, int nangles, arecImage *pr
 #undef x
 #undef y
 
-/*-----------------------------------------------------------------*/
+    /*-----------------------------------------------------------------*/
 
 #define y(i) y[(i)]
 #define x(i, j, k) x[nx * ny * (k) + ((j)) * nx + (i)]
@@ -559,7 +558,7 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
 
     int const nx = cylvol.nx;
     int const ny = cylvol.ny;
-    int const nz = cylvol.nz;
+    // int const nz = cylvol.nz;
 
     float *x = cylvol.data;
 
@@ -582,7 +581,7 @@ int arecProject2D_SQ(arecImage const cylvol, float *angles, int nangles, arecIma
     reset(projstack);
 
     // loops
-    int ia, i, j, iqx, iqy;
+    int ia, i, iqx, iqy;
     int nnz, ind_a, ind_y;
     // variables
     double cosphi, sinphi;
@@ -693,13 +692,13 @@ int arecBackProject2D_SQ(arecImage const images, float *angles, int nangles, are
     double val0, val1, val2, val3;
     double w0, w1, w2;
     double xc, zc, xb, xv;
-    sq_params p;
+    // sq_params p;
 
     ind_a = 0;
     for (ia = 0; ia < nangles; ia++) {
         cosphi = cos(angles[ia]);
         sinphi = sin(angles[ia]);
-        auto p = sqpoints(angles[ia]);
+        sq_params p = sqpoints(angles[ia]);
         nnz = 0;
         for (i = 0; i < nrays; i++) {
             xc = cord(0, i) - xcent;

@@ -12,7 +12,7 @@
 int init_weights(MPI_Comm comm, arecImage projections, arecImage *weights) {
     int ierr = 0;
     int status = 0;
-    float *datap, *dataw, *datasw;
+    float *datap, *dataw;
 
     int const nx = projections.nx;
     int const ny = projections.ny;
@@ -32,7 +32,7 @@ int init_weights(MPI_Comm comm, arecImage projections, arecImage *weights) {
     }
 
     for (int i = 0; i < nz; i++) {
-        tukey_filter2d_inplace(&dataw[nx * ny * i], nx, ny, 0.5);
+        tukey_filter_x_inplace(&dataw[nx * ny * i], nx, ny, 0.5);
     }
 
     float minval = 1e6f;
@@ -63,7 +63,7 @@ int cyl_cgls_stat(MPI_Comm comm, arecImage images, float *angles, arecImage *xcv
     float *wdata;
 
     double rnorm, rnorm0, rnorm2, rnorm2sum, relnrm, gamma, gamma0, alpha, beta, pnorm2, pnorm2sum,
-        relnrm0, rnorm_min;
+        rnorm_min, relnrm0;
 
     MPI_Comm_rank(comm, &mypid);
     MPI_Comm_size(comm, &ncpus);

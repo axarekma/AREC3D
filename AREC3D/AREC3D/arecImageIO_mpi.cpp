@@ -26,7 +26,7 @@ void arecReadImageDistbyZ(MPI_Comm comm, const char *fname, arecImage *image) {
     MPI_Status mpistatus;
 
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, fname, "rb");
+        fp = fopen(fname, "rb");
         if (!fp) {
             fprintf(stderr, "failed to open %s\n", fname);
             MPI_Abort(comm, ierr);
@@ -147,7 +147,7 @@ void arecReadImageDistbyY(MPI_Comm comm, const char *fname, arecImage *image) {
     MPI_Status mpistatus;
 
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, fname, "rb");
+        fp = fopen(fname, "rb");
         if (!fp) {
             fprintf(stderr, "failed to open %s\n", fname);
             MPI_Abort(comm, ierr);
@@ -338,7 +338,7 @@ void arecWriteImageMergeY(MPI_Comm comm, const char *fname, arecImage image) {
 
     /* write the header first */
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, fname, "wb");
+        fp = fopen(fname, "wb");
         if (!fp) {
             fprintf(stderr, "failed to open %s\n", fname);
             MPI_Abort(comm, ierr);
@@ -479,7 +479,7 @@ void arecWriteImageMergeZ(MPI_Comm comm, const char *fname, arecImage image) {
 
     /* write the header first */
     if (mypid == 0) {
-        errno_t err = fopen_s(&fp, fname, "wb");
+        fp = fopen(fname, "wb");
         if (!fp) {
             fprintf(stderr, "failed to open %s for write\n", fname);
             MPI_Abort(comm, ierr);

@@ -46,8 +46,10 @@ void makePeriodicSlice(int nx, int ny, float *data, float *out) {
     // calculate S
     for (j = 0; j < ny; j++) {
         for (i = 0; i < nx; i++) {
-            ff[nx * j + i][0] /= (2 * cos(2.0 * PI * i / nx) + 2 * cos(2.0 * PI * j / ny) - 4);
-            ff[nx * j + i][1] /= (2 * cos(2.0 * PI * i / nx) + 2 * cos(2.0 * PI * j / ny) - 4);
+            ff[nx * j + i][0] /=
+                (2 * cos(2.0 * piFunc() * i / nx) + 2 * cos(2.0 * piFunc() * j / ny) - 4);
+            ff[nx * j + i][1] /=
+                (2 * cos(2.0 * piFunc() * i / nx) + 2 * cos(2.0 * piFunc() * j / ny) - 4);
         }
     }
     ff[0][0] = 0.0;
@@ -364,26 +366,13 @@ void tukey_filter(float *in, float *out, int nx, int ny, double alpha) {
     }
 }
 
-void tukey_filter2d_inplace(float *in, int nx, int ny, double alpha) {
+void tukey_filter_x_inplace(float *in, int nx, int ny, double alpha) {
     double xa = (0.5 * alpha * (nx - 1));
     double xb = (1.0 - 0.5 * alpha) * (nx - 1);
-    double ya = (0.5 * alpha * (ny - 1));
-    double yb = (1.0 - 0.5 * alpha) * (ny - 1);
     double A = 2.0 * M_PI / alpha;
 
     int x, y;
     for (y = 0; y < ny; y++) {
-        double hy;
-        double valya = 0.5 * (1.0 + cos(A * (1.0 * y / (ny - 1) - alpha / 2)));
-        double valyb = 0.5 * (1.0 + cos(A * (1.0 * y / (ny - 1) - 1.0 + alpha / 2)));
-
-        if (y < ya)
-            hy = valya;
-        else if (y > yb)
-            hy = valyb;
-        else
-            hy = 1.0;
-
         for (x = 0; x < nx; x++) {
             double hx;
             double valxa = 0.5 * (1.0 + cos(A * (1.0 * x / (nx - 1) - alpha / 2)));

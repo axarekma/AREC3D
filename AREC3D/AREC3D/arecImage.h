@@ -34,8 +34,7 @@ void arecCropImages(arecImage images, arecImage croppedimages, int xcent, int yc
 void arecImageTakeLog(arecImage image);
 int ImageMergeYDistZ(MPI_Comm comm, arecImage imagein, arecImage imageout);
 int arecCCImages(MPI_Comm comm, arecImage images1, arecImage images2, float *sx, float *sy);
-int arecRotCCImages(MPI_Comm comm, arecImage images1, arecImage images2, int r1, int r2,
-                    float *angle);
+int arecRotCCImages(MPI_Comm comm, arecImage images1, arecImage images2, int r2, float *angle);
 
 float lerp(float s, float e, float t);
 float blerp(float c00, float c10, float c01, float c11, float tx, float ty);
@@ -50,8 +49,6 @@ void arecRotateImages_skew_safe(arecImage *images, arecImage *images_ref, float 
 
 float getCoord_blerp_raw(arecImage image, float x, float y, int z);
 void getRadialProfile(arecImage image, int z, float *out, int length, int R);
-int arecRotCCImages2(MPI_Comm comm, arecImage images1, arecImage images2, int r1, int r2,
-                     float *angles);
 
 float findPeak1d(int length, float *data);
 int findMaxIndex(float *data, int N);

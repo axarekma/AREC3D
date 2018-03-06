@@ -468,7 +468,7 @@ void savePolarImage(float *data, int X, int Y, const char *fname) {
     int h = Y;
     FILE *f;
 
-    errno_t err = fopen_s(&f, fname, "wb");
+    f = fopen(fname, "wb");
     if (!f)
         printf("Ouch!  Cannot create file.\n");
     else {
@@ -516,7 +516,6 @@ float findPeak1d(int length, float *data) {
 float getCoord_blerp_raw(arecImage image, float x, float y, int z) {
     int nx = image.nx;
     int ny = image.ny;
-    int nz = image.nz;
     int xbase = (int)x;
     int ybase = (int)y;
     double xFraction = x - xbase;
@@ -553,23 +552,25 @@ void getRadialProfile(arecImage image, int z, float *out, int length, int R) {
     }
 }
 
-int arecRotCCImages2(MPI_Comm comm, arecImage images1, arecImage images2, int r1, int r2,
-                     float *angles) {
+int arecRotCCImages(MPI_Comm comm, arecImage images1, arecImage images2, int r2, float *angles) {
     int nx, ny, nz, n_alpha;
     int i;
     float *I_alpha1, *I_alpha2, *cccoefs;
+    int statusloc = 0, status = 0;
 
     nx = images1.nx;
     ny = images1.ny;
     nz = images1.nz;
 
     if (nx != images2.nx || ny != images2.ny || nz != images2.nz) {
+        statusloc = -1;
         fprintf(stderr, "arecRotCCImages2: mismatch in dimension:\n");
         fprintf(stderr, "(%d,%d,%d) (%d,%d,%d)\n", nx, ny, nz, images2.nx, images2.ny, images2.nz);
-        return -1;
+        MPI_Allreduce(&statusloc, &status, 1, MPI_INT, MPI_SUM, comm);
+        return status;
     }
 
-    n_alpha = (int)(r2 * 2 * PI);
+    n_alpha = (int)(r2 * 2 * piFunc());
     I_alpha1 = (float *)fftwf_malloc(n_alpha * sizeof(float));
     I_alpha2 = (float *)fftwf_malloc(n_alpha * sizeof(float));
     cccoefs = (float *)fftwf_malloc(n_alpha * sizeof(float));
@@ -581,127 +582,13 @@ int arecRotCCImages2(MPI_Comm comm, arecImage images1, arecImage images2, int r1
         ccorr1d(n_alpha, I_alpha1, I_alpha2, cccoefs);
         angles[i] = findPeak1d(n_alpha, cccoefs);
         // index to rad and fix phase shift
-        angles[i] *= 2 * PI / n_alpha; // in rad
-        if (angles[i] > PI) angles[i] -= 2.0 * PI;
-        angles[i] *= 180.0 / PI; // to deg
+        angles[i] *= 2 * piFunc() / n_alpha; // in rad
+        if (angles[i] > piFunc()) angles[i] -= 2.0 * piFunc();
+        angles[i] *= 180.0 / piFunc(); // to deg
     }
 
     fftwf_free(I_alpha1);
     fftwf_free(I_alpha2);
-    fftwf_free(cccoefs);
-
-    return 0;
-}
-
-/*-----------------------------------------------*/
-int arecRotCCImages(MPI_Comm comm, arecImage images1, arecImage images2, int r1, int r2,
-                    float *angles) {
-    /* cross correlating two sets of images pairwise */
-    int nx1, ny1, nz1, nx2, ny2, nz2;
-    float *data1, *data2, *cccoefs;
-    int statusloc = 0, status = 0;
-    int img, j, k, ix, iy, iang, lsam;
-
-    int nang;
-    float *pdata1, *pdata2;
-    double cmax, pos;
-    double plist[7];
-
-    fftwf_complex *fx1, *fx2, *ff;
-    fftwf_plan p1 = NULL, p2 = NULL, pc = NULL;
-
-    nx1 = images1.nx;
-    ny1 = images1.ny;
-    nz1 = images1.nz;
-    data1 = images1.data;
-
-    nx2 = images2.nx;
-    ny2 = images2.ny;
-    nz2 = images2.nz;
-    data2 = images2.data;
-
-    nang = (int)(2 * PI * r2);
-
-    pdata1 = (float *)fftwf_malloc(nang * (r2 - r1 + 1) * sizeof(float));
-    pdata2 = (float *)fftwf_malloc(nang * (r2 - r1 + 1) * sizeof(float));
-    if (!pdata1 || !pdata2) {
-        fprintf(stderr, "failed to allocate pdata1 or pdata2!\n");
-        exit(1);
-    }
-
-    if (nx1 != nx2 || ny1 != ny2 || nz1 != nz2) {
-        statusloc = -1;
-        fprintf(stderr, "arecCCImages: mismatch in dimension:\n");
-        fprintf(stderr, "nx1,nx2,ny1,ny2,nz1,nz2=%d, %d, %d, %d, %d, %d\n", nx1, nx2, ny1, ny2, nz1,
-                nz2);
-        MPI_Allreduce(&statusloc, &status, 1, MPI_INT, MPI_SUM, comm);
-        return status;
-    }
-
-    cccoefs = (float *)fftwf_malloc(nang * sizeof(float));
-
-    lsam = nang + 2 - nang % 2;
-    fx1 = (fftwf_complex *)fftwf_malloc(lsam * sizeof(fftwf_complex));
-    fx2 = (fftwf_complex *)fftwf_malloc(lsam * sizeof(fftwf_complex));
-    ff = (fftwf_complex *)fftwf_malloc(lsam * sizeof(fftwf_complex));
-
-    for (img = 0; img < nz1; img++) {
-        to_polar(nx1, ny1, r1, r2, &data1[nx1 * ny1 * img], pdata1);
-        to_polar(nx2, ny2, r1, r2, &data2[nx1 * ny1 * img], pdata2);
-
-        for (k = 0; k < nang; k++)
-            cccoefs[k] = 0.0;
-        for (k = 0; k < lsam; k++) {
-            ff[k][0] = 0.0;
-            ff[k][1] = 0.0;
-        }
-
-        /* average 1D cross-correlation */
-        for (j = 0; j < (r2 - r1 + 1); j++) {
-            p1 = fftwf_plan_dft_r2c_1d(nang, &pdata1[nang * j], fx1, FFTW_ESTIMATE);
-            fftwf_execute(p1);
-            p2 = fftwf_plan_dft_r2c_1d(nang, &pdata2[nang * j], fx2, FFTW_ESTIMATE);
-            fftwf_execute(p2);
-            for (k = 0; k < lsam; k++) {
-                // ff[k][0] = ff[k][0] + fx2[k][0]*fx1[k][0] + fx2[k][1]*fx1[k][1];
-                // ff[k][1] = ff[k][1] + fx2[k][0]*fx1[k][1] - fx2[k][1]*fx1[k][0];
-                // weight by R to preserve relative area
-                ff[k][0] = ff[k][0] + fx2[k][0] * fx1[k][0] * j + fx2[k][1] * fx1[k][1] * j;
-                ff[k][1] = ff[k][1] + fx2[k][0] * fx1[k][1] * j - fx2[k][1] * fx1[k][0] * j;
-            }
-        }
-        pc = fftwf_plan_dft_c2r_1d(nang, ff, cccoefs, FFTW_ESTIMATE);
-        fftwf_execute(pc);
-
-        fftwf_destroy_plan(p1);
-        fftwf_destroy_plan(p2);
-        fftwf_destroy_plan(pc);
-
-        cmax = -1.0e20;
-        for (iang = 0; iang < nang; iang++) {
-            if (cccoefs[iang] > cmax) {
-                cmax = cccoefs[iang];
-                ix = iang;
-            }
-        }
-
-        /* fit a polynomial around the peak, and return the position of
-           the maximum of the polynomial */
-        for (k = -3; k <= 3; k++) {
-            plist[k + 3] = cccoefs[(ix + k + nang) % nang];
-        }
-        PRB1D(plist, 7, &pos); /* fit with a polynomial and find its maximizer */
-        angles[img] = 360.0 * (ix + pos) / (double)nang;
-        // printf("rotCC %d : ind %d pos: %4.2f ",img,ix,pos);
-        // correct for phaseshift
-        if (angles[img] > 180.0) angles[img] -= 360.0;
-    }
-
-    fftwf_free(fx1);
-    fftwf_free(fx2);
-    fftwf_free(ff);
-    fftwf_free(pdata1);
-    fftwf_free(pdata2);
     fftwf_free(cccoefs);
 
     return status;
@@ -839,7 +726,7 @@ void arecRotateImages_skew(arecImage *images, float *angles) {
                 data[nx * ny * j + i] = temp[i];
             free(temp);
         } else {
-            float angle_rad = angles[j] * PI / 180.0;
+            float angle_rad = angles[j] * piFunc() / 180.0;
             shearX_circ(&data[nx * ny * j], -tan(-0.5 * angle_rad), nx, ny);
             shearY_circ(&data[nx * ny * j], sin(-angle_rad), nx, ny);
             shearX_circ(&data[nx * ny * j], -tan(-0.5 * angle_rad), nx, ny);
@@ -873,7 +760,7 @@ void arecRotateImages_skew_safe(arecImage *images, arecImage *images_ref, float 
         for (i = 0; i < nx * ny; i++)
             data_backup[i] = data[nx * ny * j + i];
         // rotate data
-        float angle_rad = angles[j] * PI / 180.0;
+        float angle_rad = angles[j] * piFunc() / 180.0;
         shearX_circ(&data[nx * ny * j], -tan(-0.5 * angle_rad), nx, ny);
         shearY_circ(&data[nx * ny * j], sin(-angle_rad), nx, ny);
         shearX_circ(&data[nx * ny * j], -tan(-0.5 * angle_rad), nx, ny);
@@ -904,13 +791,13 @@ void arecRotateImages_skew_safe(arecImage *images, arecImage *images_ref, float 
 void reset(arecImage *image) {
     if (image->is_cyl == 0) {
         int length = image->nx * image->ny * image->nz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             image->data[i] = 0.0f;
         }
     }
     if (image->is_cyl == 1) {
         int length = image->nnz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             image->data[i] = 0.0f;
         }
     }
@@ -920,13 +807,13 @@ void reset(arecImage *image) {
 void soft_noneg(arecImage *image) {
     if (image->is_cyl == 0) {
         int length = image->nx * image->ny * image->nz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             if (image->data[i] < 0.0f) image->data[i] *= 0.5f;
         }
     }
     if (image->is_cyl == 1) {
         int length = image->nnz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             if (image->data[i] < 0.0f) image->data[i] *= 0.5f;
         }
     }
@@ -937,14 +824,14 @@ void print(arecImage *image) {
     if (image->is_cyl == 0) {
         printf("\n Content of cubevol \n");
         int length = image->nx * image->ny * image->nz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             printf("data %d: %f \n", i, image->data[i]);
         }
     }
     if (image->is_cyl == 1) {
         printf("\n Content of cylvol \n");
         int length = image->nnz;
-        for (size_t i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) {
             printf("data %d: %f  \n", i, image->data[i]);
         }
     }
