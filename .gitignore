@@ -7,7 +7,14 @@
 *.rawtlt
 *.mrc
 *.st
-input
+*.iter*
+input*
+
+*.vcxproj*
+
+#build
+*.d
+*.o
 
 # User-specific files
 *.suo

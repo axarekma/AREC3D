@@ -298,10 +298,10 @@ void blackmanHarris_filter(float *in, float *out, int nx, int ny) {
     int x, y;
 
     for (y = 0; y < ny; y++) {
-        double by = 2.0 * M_PI * y / (ny - 1);
+        double by = 2.0 * piFunc() * y / (ny - 1);
         double hy = a0 - a1 * cos(by) + a2 * cos(2 * by) - a3 * cos(3 * by);
         for (x = 0; x < nx; x++) {
-            double bx = 2.0 * M_PI * x / (nx - 1);
+            double bx = 2.0 * piFunc() * x / (nx - 1);
             double hx = a0 - a1 * cos(bx) + a2 * cos(2 * bx) - a3 * cos(3 * bx);
 
             out[y * nx + x] = in[y * nx + x] * hx * hy;
@@ -318,10 +318,10 @@ void blackmanHarris_filter_normalize(float *in, float *out, int nx, int ny) {
     float meanval = getArrayMean(in, nx * ny);
 
     for (y = 0; y < ny; y++) {
-        double by = 2.0 * M_PI * y / (ny - 1);
+        double by = 2.0 * piFunc() * y / (ny - 1);
         double hy = a0 - a1 * cos(by) + a2 * cos(2 * by) - a3 * cos(3 * by);
         for (x = 0; x < nx; x++) {
-            double bx = 2.0 * M_PI * x / (nx - 1);
+            double bx = 2.0 * piFunc() * x / (nx - 1);
             double hx = a0 - a1 * cos(bx) + a2 * cos(2 * bx) - a3 * cos(3 * bx);
 
             out[y * nx + x] = (in[y * nx + x] - meanval) * hx * hy;
@@ -334,7 +334,7 @@ void tukey_filter(float *in, float *out, int nx, int ny, double alpha) {
     double xb = (1.0 - 0.5 * alpha) * (nx - 1);
     double ya = (0.5 * alpha * (ny - 1));
     double yb = (1.0 - 0.5 * alpha) * (ny - 1);
-    double A = 2.0 * M_PI / alpha;
+    double A = 2.0 * piFunc() / alpha;
 
     int x, y;
     for (y = 0; y < ny; y++) {
@@ -369,7 +369,7 @@ void tukey_filter(float *in, float *out, int nx, int ny, double alpha) {
 void tukey_filter_x_inplace(float *in, int nx, int ny, double alpha) {
     double xa = (0.5 * alpha * (nx - 1));
     double xb = (1.0 - 0.5 * alpha) * (nx - 1);
-    double A = 2.0 * M_PI / alpha;
+    double A = 2.0 * piFunc() / alpha;
 
     int x, y;
     for (y = 0; y < ny; y++) {

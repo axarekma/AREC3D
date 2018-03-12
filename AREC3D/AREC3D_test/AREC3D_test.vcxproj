@@ -166,7 +166,6 @@
     <ClInclude Include="..\AREC3D\arecproject.h" />
     <ClInclude Include="..\AREC3D\arecsirt.h" />
     <ClInclude Include="..\AREC3D\arecsirt_KB.h" />
-    <ClInclude Include="..\AREC3D\edgeslope.h" />
     <ClInclude Include="..\AREC3D\imagetools.h" />
     <ClInclude Include="..\AREC3D\ReadAndDistAngles.h" />
     <ClInclude Include="stdafx.h" />
@@ -183,7 +182,6 @@
     <ClCompile Include="..\AREC3D\arecproject.cpp" />
     <ClCompile Include="..\AREC3D\arecsirt.cpp" />
     <ClCompile Include="..\AREC3D\arecsirt_KB.cpp" />
-    <ClCompile Include="..\AREC3D\edgeslope.cpp" />
     <ClCompile Include="..\AREC3D\imagetools.cpp" />
     <ClCompile Include="..\AREC3D\ReadAndDistAngles.cpp" />
     <ClCompile Include="AREC3D_test.cpp" />

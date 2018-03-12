@@ -36,9 +36,11 @@ void print_hint() {
 
 int parse_keyvalue(arecparam *param, const char *key, const char *value, int &havedata) {
     if (strncmp(key, "data", 4) == 0) {
+#pragma warning(suppress : 4996)
         strcpy(param->stackfname, value);
         havedata = 1;
     } else if (strncmp(key, "angle", 5) == 0) {
+#pragma warning(suppress : 4996)
         strcpy(param->anglefname, value);
         param->haveangles = 1;
     } else if (strncmp(key, "cropx", 5) == 0) {
@@ -58,6 +60,7 @@ int parse_keyvalue(arecparam *param, const char *key, const char *value, int &ha
     } else if (strncmp(key, "maxit", 5) == 0) {
         param->maxit = atoi(value);
     } else if (strncmp(key, "output", 6) == 0) {
+#pragma warning(suppress : 4996)
         strcpy(param->voutfname, value);
     } else if (strncmp(key, "lcut", 4) == 0) {
         param->lcut = atoi(value);
@@ -184,6 +187,7 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
     param->thresh = 0.5;
 
     if (mypid == 0) {
+#pragma warning(suppress : 4996)
         fp = fopen(filename, "rb");
         if (!fp) {
             fprintf(stderr, "failed to open %s\n", filename);
@@ -194,11 +198,14 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
     if (status != 0) return status;
 
     if (mypid == 0) {
+#pragma warning(suppress : 4996)
         while (fscanf(fp, "%s %s", key, value) != EOF) {
             if (strncmp(key, "data", 4) == 0) {
+#pragma warning(suppress : 4996)
                 strcpy(param->stackfname, value);
                 havedata = 1;
             } else if (strncmp(key, "angle", 5) == 0) {
+#pragma warning(suppress : 4996)
                 strcpy(param->anglefname, value);
                 param->haveangles = 1;
             } else if (strncmp(key, "cropx", 5) == 0) {
@@ -218,6 +225,7 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
             } else if (strncmp(key, "maxit", 5) == 0) {
                 param->maxit = atoi(value);
             } else if (strncmp(key, "output", 6) == 0) {
+#pragma warning(suppress : 4996)
                 strcpy(param->voutfname, value);
             } else if (strncmp(key, "lcut", 4) == 0) {
                 param->lcut = atoi(value);
@@ -272,15 +280,15 @@ int parseinput_old(MPI_Comm comm, char *filename, arecparam *param) {
 }
 
 /* -----------------------------------------------*/
-void setparams(arecparam inparam, int nx, int ny, int *radius, int *height, int *xcent, int *ycent,
-               char *voutfname, int *lcut, int *rcut, int *fudgefactor, int *rmethod,
+void setparams(arecparam inparam, int nx, int ny, double *radius, int *height, int *xcent,
+               int *ycent, char *voutfname, int *lcut, int *rcut, int *fudgefactor, int *rmethod,
                int *pmethod) {
     /* set some parameters based on images size and input */
 
     if (inparam.cropx > 0) {
-        *radius = (inparam.cropx - 1) / 2;
+        *radius = 0.5 * (inparam.cropx - 1);
     } else {
-        *radius = (nx - 1) / 2;
+        *radius = 0.5 * (nx - 1);
     }
     if (inparam.cropy > 0) {
         *height = inparam.cropy;
@@ -298,9 +306,11 @@ void setparams(arecparam inparam, int nx, int ny, int *radius, int *height, int 
         *ycent = (ny - 1) / 2;
     }
     if (inparam.voutfname != NULL) {
+#pragma warning(suppress : 4996)
         strcpy(voutfname, inparam.voutfname); // FIXME!
     } else {
         /* no output filename provided */
+#pragma warning(suppress : 4996)
         strcpy(voutfname, "myvolsirt.mrc"); // FIXME!
     }
     *lcut = inparam.lcut;

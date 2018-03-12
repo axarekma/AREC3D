@@ -25,8 +25,9 @@
 int main(int argc, char **argv) {
     MPI_Comm comm = MPI_COMM_WORLD;
     int ncpus, mypid, status = 0;
-    int nx, ny, nz, nyloc, nzloc, nangles, maxsirt, radius, height, i, j, xcent, ycent, maxit, iter,
-        lcut, rcut, fudgefactor, r2, nimgs, nimgstot, rmethod, iflip, pmethod;
+    int nx, ny, nz, nyloc, nzloc, nangles, maxsirt, height, i, j, xcent, ycent, maxit, iter, lcut,
+        rcut, fudgefactor, r2, nimgs, nimgstot, rmethod, iflip, pmethod;
+    double radius;
     float delang, tol, lam;
     float *rotangles, *angbuf, *rotangles_sum;
     float *sx, *sy, *sx_temp, *sy_temp, *sxbuf, *sybuf;
@@ -64,6 +65,7 @@ int main(int argc, char **argv) {
         goto EXIT;
     }
 
+#pragma warning(suppress : 4996)
     strcpy(inputfname, argv[1]);
     status = parseinput(comm, inputfname, &inparam);
     if (status != 0) {
@@ -187,6 +189,7 @@ int main(int argc, char **argv) {
         if (pmethod == 2) arecProject2D_KB(xcyvol, angles, nangles, &prjstack);
         if (pmethod == 3) arecProject2D_SQ(xcyvol, angles, nangles, &prjstack);
         MPI_Barrier(comm);
+#pragma warning(suppress : 4996)
         sprintf(prjstackfname, "projected_stack.mrc");
         arecWriteImageMergeY(comm, prjstackfname, prjstack);
         arecImageFree(&prjstack);
@@ -224,7 +227,7 @@ int main(int argc, char **argv) {
         // only do rotational correlation every 3rd time to ensure trans is good.
         if ((iter + 1) % 3 == 0) {
             if (mypid == 0) printf("iter==%d, doing rotcorr\n", iter);
-            rotsize = std::min(2 * radius + 1, height - 10);
+            rotsize = std::min(static_cast<int>(2 * radius + 1), height - 10);
             r2 = rotsize / 2;
             status = arecRotCCImages(comm, prjstack, alignedimages, r2, rotangles);
             arecRotateImages_skew_safe(&alignedimages, &prjstack, rotangles);
@@ -234,7 +237,7 @@ int main(int argc, char **argv) {
         }
 
         MPI_Barrier(comm);
-
+#pragma warning(suppress : 4996)
         sprintf(alignedimagesfname, "alignedimages_iter.mrc");
         arecWriteImageMergeZ(comm, alignedimagesfname, alignedimages);
         arecImageFree(&alignedimages);
@@ -242,7 +245,9 @@ int main(int argc, char **argv) {
 
         if (mypid == 0) {
             /* write shifts and rotation angle to the LOG file */
+#pragma warning(suppress : 4996)
             sprintf(logfname, "arec3dLOG.iter%d", iter + 1);
+#pragma warning(suppress : 4996)
             fp = fopen(logfname, "wb");
             sxbuf = (float *)malloc(nzloc * sizeof(float));
             sybuf = (float *)malloc(nzloc * sizeof(float));

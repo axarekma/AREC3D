@@ -14,7 +14,7 @@ int countrows(char *fname) {
     char line[2000];
     int nangles;
     FILE *fp;
-
+#pragma warning(suppress : 4996)
     fp = fopen(fname, "rb");
     if (!fp) {
         fprintf(stderr, "%s does not exist!\n", fname);
@@ -34,7 +34,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
     nimgs  --- total number of images in the original image data stack
     angles --- pointers to local arrays that contain distributed angles
     iflip  --- pointer to the index of the image that is the mirror image
-                                                                                                                                       of the first image, i.e., the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       of the first image, i.e., the
     angle difference between the iflip-th image and the 1st image should be around 180 degrees.
     */
 
@@ -60,6 +60,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
 
     t0 = MPI_Wtime();
     if (mypid == 0) {
+#pragma warning(suppress : 4996)
         fp = fopen(angfname, "rb");
         if (!fp) ierr = 1;
     }
@@ -70,6 +71,7 @@ int ReadAndDistAngles(MPI_Comm gcomm, char *angfname, int nimgs, float *angles, 
     } else {
         if (mypid == 0) {
             for (i = 0; i < nangles; i++) {
+#pragma warning(suppress : 4996)
                 if (fscanf(fp, "%f", &angles[i])) {}
                 if (i == 0) {
                     if (angles[i] > 180.0) {

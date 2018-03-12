@@ -467,7 +467,7 @@ void savePolarImage(float *data, int X, int Y, const char *fname) {
     int w = X;
     int h = Y;
     FILE *f;
-
+#pragma warning(suppress : 4996)
     f = fopen(fname, "wb");
     if (!f)
         printf("Ouch!  Cannot create file.\n");
@@ -544,7 +544,7 @@ void getRadialProfile(arecImage image, int z, float *out, int length, int R) {
     for (i = 0; i < length; i++)
         out[i] = 0.0;
     for (i = 0; i < length; i++) {
-        double alpha = 2 * M_PI * i / length;
+        double alpha = 2 * piFunc() * i / length;
         for (ri = 0; ri < R; ri++) {
             out[i] +=
                 getCoord_blerp_raw(image, x_c + cos(alpha) * ri, y_c + sin(alpha) * ri, z) * ri;

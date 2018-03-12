@@ -51,9 +51,6 @@
     <ClInclude Include="arecsirt_KB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="edgeslope.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="imagetools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,9 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="arecsirt_KB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="edgeslope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imagetools.cpp">

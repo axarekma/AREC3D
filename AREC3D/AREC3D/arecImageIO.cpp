@@ -12,6 +12,7 @@ int arecReadImageHeader(char *fname, int *nx, int *ny, int *nz) {
     int status = 0, nbytes;
 
     FILE *fp;
+#pragma warning(suppress : 4996)
     fp = fopen(fname, "rb");
     if (!fp) {
         fprintf(stderr, "failed to open %s\n", fname);
@@ -35,6 +36,7 @@ int arecReadImage(char *fname, arecImage *image) {
     MRCheader mrcheader;
 
     FILE *fp;
+#pragma warning(suppress : 4996)
     fp = fopen(fname, "rb");
     if (!fp) {
         fprintf(stderr, "failed to open %s\n", fname);
@@ -146,7 +148,7 @@ int arecWriteImage(char *fname, arecImage image) {
 
     mrcheader.rms = 1.0;
     mrcheader.nlabels = 0;
-
+#pragma warning(suppress : 4996)
     fp = fopen(fname, "wb");
     if (!fp) {
         fprintf(stderr, "failed to open %s\n", fname);

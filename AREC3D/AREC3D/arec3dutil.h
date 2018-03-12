@@ -27,5 +27,6 @@ void print_hint();
 int parse_keyvalue(arecparam *param, const char *key, const char *value, int &havedata);
 int parseinput(MPI_Comm comm, char *filename, arecparam *param);
 int parseinput_old(MPI_Comm comm, char *filename, arecparam *param);
-void setparams(arecparam inparam, int nx, int ny, int *radius, int *height, int *xcent, int *ycent,
-               char *voutfname, int *lcut, int *rcut, int *fudgefactor, int *rmethod, int *pmethod);
+void setparams(arecparam inparam, int nx, int ny, double *radius, int *height, int *xcent,
+               int *ycent, char *voutfname, int *lcut, int *rcut, int *fudgefactor, int *rmethod,
+               int *pmethod);

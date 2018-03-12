@@ -13,7 +13,8 @@ int cyl_sirt(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol, f
     double t0;
 
     int ierr = 0, mypid, ncpus, status = 0;
-    int height, radius;
+    int height;
+    double radius;
 
     int nx, ny, nz, nangles, iter, i, j, nnz;
     float *xcdata, *pdata, *bdata, *grad;
@@ -33,7 +34,7 @@ int cyl_sirt(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol, f
     nangles = nz;
 
     height = ny;
-    radius = nx / 2;
+    radius = 0.5 * (nx - 1);
 
     /* create volume image and initialize it to zero */
     status = arecAllocateCBImage(&projstack, nx, ny, nz);
@@ -55,7 +56,7 @@ int cyl_sirt(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol, f
         xcdata[i] = 0.0;
     if (mypid == 0) {
         printf("nrays = %d, nnz = %d\n", xcvol->nrays, nnz);
-        printf("nx = %d, ny = %d, radius = %d, height = %d\n", nx, ny, radius, height);
+        printf("nx = %d, ny = %d, radius = %4.2f, height = %d\n", nx, ny, radius, height);
     }
 
     status = arecAllocateCylImage(&bvol, radius, height);
@@ -194,7 +195,8 @@ int cyl_sirt_SQ(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol
     double t0;
 
     int ierr = 0, mypid, ncpus, status = 0;
-    int height, radius;
+    int height;
+    double radius;
 
     int nx, ny, nz, nangles, iter, i, j, nnz;
     float *xcdata, *pdata, *bdata, *grad;
@@ -214,7 +216,7 @@ int cyl_sirt_SQ(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol
     nangles = nz;
 
     height = ny;
-    radius = nx / 2;
+    radius = 0.5 * (nx - 1);
 
     /* create volume image and initialize it to zero */
     status = arecAllocateCBImage(&projstack, nx, ny, nz);
@@ -236,7 +238,7 @@ int cyl_sirt_SQ(MPI_Comm comm, arecImage images, float *angles, arecImage *xcvol
         xcdata[i] = 0.0;
     if (mypid == 0) {
         printf("nrays = %d, nnz = %d\n", xcvol->nrays, nnz);
-        printf("nx = %d, ny = %d, radius = %d, height = %d\n", nx, ny, radius, height);
+        printf("nx = %d, ny = %d, radius = %4.2f, height = %d\n", nx, ny, radius, height);
     }
 
     status = arecAllocateCylImage(&bvol, radius, height);
