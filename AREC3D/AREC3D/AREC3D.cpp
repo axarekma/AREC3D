@@ -47,14 +47,14 @@ int main(int argc, char **argv) {
     MPI_Comm_size(comm, &ncpus);
     MPI_Comm_rank(comm, &mypid);
 
-#pragma omp parallel
-    {
-        if (omp_get_thread_num() == 0 && mypid == 0) {
-            printf("\nMPI: Program running with world_size=%d "
-                   "num_threads=%d\n\n",
-                   ncpus, omp_get_num_threads());
-        }
-    }
+    //#pragma omp parallel
+    //    {
+    //        if (omp_get_thread_num() == 0 && mypid == 0) {
+    //            printf("\nMPI: Program running with world_size=%d "
+    //                   "num_threads=%d\n\n",
+    //                   ncpus, omp_get_num_threads());
+    //        }
+    //    }
 
     char inputfname[200], voutfname[200], prjstackfname[200], alignedimagesfname[200];
 
