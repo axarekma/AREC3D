@@ -585,6 +585,10 @@ int arecRotCCImages(MPI_Comm comm, arecImage images1, arecImage images2, int r2,
         angles[i] *= 2 * piFunc() / n_alpha; // in rad
         if (angles[i] > piFunc()) angles[i] -= 2.0 * piFunc();
         angles[i] *= 180.0 / piFunc(); // to deg
+        if (fabs(angles[i]) > 45) {
+            printf("Angle %4.2f too large, probably bad CC, do nothing \n", angles[i]);
+            angles[i] = 0.0;
+        }
     }
 
     fftwf_free(I_alpha1);
@@ -770,16 +774,17 @@ void arecRotateImages_skew_safe(arecImage *images, arecImage *images_ref, float 
         cc2 = getNormalizedCrossCorrelationWithFilter(data_backup, &data_ref[nx * ny * j], nx, ny);
 
         // printf("Slice %d cc %4.4f -> %4.4f  \n "  ,j,cc2,cc1);
-        if (cc2 + 0.00001 > cc1) // backup better, restore
+        if (cc2 + 0.00001 < cc1) // update angles
         {
-            for (i = 0; i < nx * ny; i++)
-                data[nx * ny * j + i] = data_backup[i];
-            angles[j] = 0.0;
-            cc_sum += cc2;
-        } else {
             cc_sum += cc1;
             n_rot++;
             angles[j] *= 0.5; // test if we converge towards angle
+      
+        } else { // backup better, restore
+            for (i = 0; i < nx * ny; i++)
+                data[nx * ny * j + i] = data_backup[i];
+                angles[j] = 0.0;
+                cc_sum += cc2;
         }
     }
     free(data_backup);
