@@ -19,8 +19,8 @@ LIBRARY =  $(FFTLIB) -lm
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CFLAGS = -O3 
-CPPFLAGS ?= $(INC_MPI) $(INC_FLAGS) -MMD -MP -std=c++11 -g -Wunreachable-code -Wshadow -Wextra -Wall -Wno-unknown-pragmas -O3 -fopenmp
+CFLAGS = -O3 -DNDEBUG -march=native
+CPPFLAGS ?= $(INC_MPI) $(INC_FLAGS) -MMD -MP -std=c++11 -g -Wunreachable-code -Wshadow -Wextra -Wall -Wno-unknown-pragmas -O3 -DNDEBUG -march=native -fopenmp
 
 
 AREC3D: $(OBJS)
