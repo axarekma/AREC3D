@@ -183,33 +183,33 @@ int main(int argc, char **argv) {
     rotangles_sum = (float *)calloc(nzloc, sizeof(float));
 
     for (iter = 0; iter < maxit; iter++) {
-        if (inparam.align == 1) {
 
-            if (mypid == 0) printf("AREC projection matching iter %d \n", iter);
-            // generate projections the reconstruction
-            arecAllocateCBImage(&prjstack, nx, nyloc, nangles);
-            if (pmethod == 1) arecProject2D(xcyvol, angles, nangles, &prjstack);
-            if (pmethod == 2) arecProject2D_KB(xcyvol, angles, nangles, &prjstack);
-            if (pmethod == 3) arecProject2D_SQ(xcyvol, angles, nangles, &prjstack);
-            MPI_Barrier(comm);
+        if (mypid == 0) printf("AREC projection matching iter %d \n", iter);
+        // generate projections the reconstruction
+        arecAllocateCBImage(&prjstack, nx, nyloc, nangles);
+        if (pmethod == 1) arecProject2D(xcyvol, angles, nangles, &prjstack);
+        if (pmethod == 2) arecProject2D_KB(xcyvol, angles, nangles, &prjstack);
+        if (pmethod == 3) arecProject2D_SQ(xcyvol, angles, nangles, &prjstack);
+        MPI_Barrier(comm);
 #pragma warning(suppress : 4996)
 
-            sprintf(prjstackfname, "projected_stack.mrc");
-            arecWriteImageMergeY(comm, prjstackfname, prjstack);
-            arecImageFree(&prjstack);
-            // Read both the projected data and the original images (iter 0 is not shifted but
-            // preprocessed)  and distribute them by angles
-            arecReadImageDistbyZ(comm, prjstackfname, &prjstack);
-            arecReadImageDistbyZ(comm, "alignedimages_iter0.mrc", &alignedimages);
-            // rotate original image
-            if (iter > 0) arecRotateImages_skew(&alignedimages, rotangles_sum);
+        sprintf(prjstackfname, "projected_stack.mrc");
+        arecWriteImageMergeY(comm, prjstackfname, prjstack);
+        arecImageFree(&prjstack);
+        // Read both the projected data and the original images (iter 0 is not shifted but
+        // preprocessed)  and distribute them by angles
+        arecReadImageDistbyZ(comm, prjstackfname, &prjstack);
+        arecReadImageDistbyZ(comm, "alignedimages_iter0.mrc", &alignedimages);
+        // rotate original image
+        if (iter > 0) arecRotateImages_skew(&alignedimages, rotangles_sum);
 
-            // iteratively find best translation
-            for (i = 0; i < nzloc; i++) {
-                sx[i] = 0.0;
-                sy[i] = 0.0;
-            }
+        // iteratively find best translation
+        for (i = 0; i < nzloc; i++) {
+            sx[i] = 0.0;
+            sy[i] = 0.0;
+        }
 
+        if (inparam.align == 1) {
             if (mypid == 0) printf("Translational correlation\n");
             // TODO change to while loop, check for sx_temp sy_temp
             for (corr_iter = 0; corr_iter < 3; corr_iter++) {
@@ -222,71 +222,72 @@ int main(int argc, char **argv) {
                     sy[i] += sy_temp[i];
                 }
             }
-
-            // load fresh data and transform with current transformations
-            arecReadImageDistbyZ(comm, "alignedimages_iter0.mrc", &alignedimages);
-            if (iter > 0) arecRotateImages_skew(&alignedimages, rotangles_sum);
-            arecShiftImages(alignedimages, sx, sy);
-
-            // do rotational correlation
-            // only do rotational correlation every 3rd time to ensure trans is good.
-            if ((iter + 1) % 3 == 0) {
-                if (mypid == 0) printf("iter==%d, doing rotcorr\n", iter);
-                rotsize = std::min(static_cast<int>(2 * radius + 1), height - 10);
-                r2 = rotsize / 2;
-                status = arecRotCCImages(comm, prjstack, alignedimages, r2, rotangles);
-                arecRotateImages_skew_safe(&alignedimages, &prjstack, rotangles);
-                for (i = 0; i < nzloc; i++) {
-                    rotangles_sum[i] = rotangles_sum[i] + rotangles[i];
-                }
-            }
-
-            MPI_Barrier(comm);
-#pragma warning(suppress : 4996)
-            sprintf(alignedimagesfname, "alignedimages_iter.mrc");
-            arecWriteImageMergeZ(comm, alignedimagesfname, alignedimages);
-            arecImageFree(&alignedimages);
-            arecImageFree(&prjstack);
-
-            if (mypid == 0) {
-                /* write shifts and rotation angle to the LOG file */
-#pragma warning(suppress : 4996)
-                sprintf(logfname, "arec3dLOG.iter%d", iter + 1);
-#pragma warning(suppress : 4996)
-                fp = fopen(logfname, "wb");
-                sxbuf = (float *)malloc(nzloc * sizeof(float));
-                sybuf = (float *)malloc(nzloc * sizeof(float));
-                angbuf = (float *)malloc(nzloc * sizeof(float));
-                for (i = 0; i < ncpus; i++) {
-                    if (i == 0) {
-                        nimgs = nzloc;
-                        for (j = 0; j < nimgs; j++) {
-                            sxbuf[j] = sx[j];
-                            sybuf[j] = sy[j];
-                            angbuf[j] = rotangles_sum[j];
-                        }
-                    } else {
-                        /* Receive from proc i */
-                        MPI_Recv(&nimgs, 1, MPI_INT, i, 0, comm, &mpistatus);
-                        MPI_Recv(sxbuf, nimgs, MPI_FLOAT, i, 1, comm, &mpistatus);
-                        MPI_Recv(sybuf, nimgs, MPI_FLOAT, i, 2, comm, &mpistatus);
-                        MPI_Recv(angbuf, nimgs, MPI_FLOAT, i, 3, comm, &mpistatus);
-                    }
-                    for (j = 0; j < nimgs; j++)
-                        fprintf(fp, "%11.4e  %11.4e  %11.4e\n", sxbuf[j], sybuf[j], angbuf[j]);
-                } /* end for i */
-                fclose(fp);
-                free(sxbuf);
-                free(sybuf);
-                free(angbuf);
-            } else {
-                MPI_Send(&nzloc, 1, MPI_INT, 0, 0, comm);
-                MPI_Send(sx, nzloc, MPI_FLOAT, 0, 1, comm);
-                MPI_Send(sy, nzloc, MPI_FLOAT, 0, 2, comm);
-                MPI_Send(rotangles_sum, nzloc, MPI_FLOAT, 0, 3, comm);
-            }
-            MPI_Barrier(comm);
         }
+
+        // load fresh data and transform with current transformations
+        arecReadImageDistbyZ(comm, "alignedimages_iter0.mrc", &alignedimages);
+        if (iter > 0) arecRotateImages_skew(&alignedimages, rotangles_sum);
+        arecShiftImages(alignedimages, sx, sy);
+
+        // do rotational correlation
+        // only do rotational correlation every 3rd time to ensure trans is good.
+
+        if ((inparam.align == 1) && ((iter + 1) % 3 == 0)) {
+            if (mypid == 0) printf("iter==%d, doing rotcorr\n", iter);
+            rotsize = std::min(static_cast<int>(2 * radius + 1), height - 10);
+            r2 = rotsize / 2;
+            status = arecRotCCImages(comm, prjstack, alignedimages, r2, rotangles);
+            arecRotateImages_skew_safe(&alignedimages, &prjstack, rotangles);
+            for (i = 0; i < nzloc; i++) {
+                rotangles_sum[i] = rotangles_sum[i] + rotangles[i];
+            }
+        }
+
+        MPI_Barrier(comm);
+#pragma warning(suppress : 4996)
+        sprintf(alignedimagesfname, "alignedimages_iter.mrc");
+        arecWriteImageMergeZ(comm, alignedimagesfname, alignedimages);
+        arecImageFree(&alignedimages);
+        arecImageFree(&prjstack);
+
+        if (mypid == 0) {
+            /* write shifts and rotation angle to the LOG file */
+#pragma warning(suppress : 4996)
+            sprintf(logfname, "arec3dLOG.iter%d", iter + 1);
+#pragma warning(suppress : 4996)
+            fp = fopen(logfname, "wb");
+            sxbuf = (float *)malloc(nzloc * sizeof(float));
+            sybuf = (float *)malloc(nzloc * sizeof(float));
+            angbuf = (float *)malloc(nzloc * sizeof(float));
+            for (i = 0; i < ncpus; i++) {
+                if (i == 0) {
+                    nimgs = nzloc;
+                    for (j = 0; j < nimgs; j++) {
+                        sxbuf[j] = sx[j];
+                        sybuf[j] = sy[j];
+                        angbuf[j] = rotangles_sum[j];
+                    }
+                } else {
+                    /* Receive from proc i */
+                    MPI_Recv(&nimgs, 1, MPI_INT, i, 0, comm, &mpistatus);
+                    MPI_Recv(sxbuf, nimgs, MPI_FLOAT, i, 1, comm, &mpistatus);
+                    MPI_Recv(sybuf, nimgs, MPI_FLOAT, i, 2, comm, &mpistatus);
+                    MPI_Recv(angbuf, nimgs, MPI_FLOAT, i, 3, comm, &mpistatus);
+                }
+                for (j = 0; j < nimgs; j++)
+                    fprintf(fp, "%11.4e  %11.4e  %11.4e\n", sxbuf[j], sybuf[j], angbuf[j]);
+            } /* end for i */
+            fclose(fp);
+            free(sxbuf);
+            free(sybuf);
+            free(angbuf);
+        } else {
+            MPI_Send(&nzloc, 1, MPI_INT, 0, 0, comm);
+            MPI_Send(sx, nzloc, MPI_FLOAT, 0, 1, comm);
+            MPI_Send(sy, nzloc, MPI_FLOAT, 0, 2, comm);
+            MPI_Send(rotangles_sum, nzloc, MPI_FLOAT, 0, 3, comm);
+        }
+        MPI_Barrier(comm);
 
         // read the aligned images back in and distribute them by Y
         arecReadImageDistbyY(comm, alignedimagesfname, &alignedimages);
