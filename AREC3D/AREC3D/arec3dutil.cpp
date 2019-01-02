@@ -74,6 +74,8 @@ int parse_keyvalue(arecparam *param, const char *key, const char *value, int &ha
         param->pmethod = atoi(value);
     } else if (strncmp(key, "thresh", 6) == 0) {
         param->thresh = atof(value);
+    } else if (strncmp(key, "align", 5) == 0) {
+        param->align = atoi(value);
     } else {
         fprintf(stderr, "invalid key in the input: %s\n", key);
         return -1;
@@ -106,6 +108,7 @@ int parseinput(MPI_Comm comm, char *filename, arecparam *param) {
     param->rmethod = 2;
     param->pmethod = 1;
     param->thresh = 0.5;
+    param->align = 1;
 
     if (mypid == 0) {
         std::ifstream infile(filename);
@@ -154,6 +157,7 @@ int parseinput(MPI_Comm comm, char *filename, arecparam *param) {
     MPI_Bcast(&param->rmethod, 1, MPI_INT, 0, comm);
     MPI_Bcast(&param->pmethod, 1, MPI_INT, 0, comm);
     MPI_Bcast(&param->thresh, 1, MPI_FLOAT, 0, comm);
+    MPI_Bcast(&param->align, 1, MPI_INT, 0, comm);
 
     return status;
 }

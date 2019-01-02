@@ -21,6 +21,7 @@ typedef struct param {
     int rmethod;
     int pmethod;
     float thresh;
+    int align;
 } arecparam;
 
 void print_hint();
