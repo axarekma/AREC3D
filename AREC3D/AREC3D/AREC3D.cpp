@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
             sy[i] = 0.0;
         }
 
-        if (inparam.align == 1) {
+        if (inparam.align >= 1) {
             if (mypid == 0) printf("Translational correlation\n");
             // TODO change to while loop, check for sx_temp sy_temp
             for (corr_iter = 0; corr_iter < 3; corr_iter++) {
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
         // do rotational correlation
         // only do rotational correlation every 3rd time to ensure trans is good.
 
-        if ((inparam.align == 1) && ((iter + 1) % 3 == 0)) {
+        if ((inparam.align == 2) && ((iter + 1) % 3 == 0)) {
             if (mypid == 0) printf("iter==%d, doing rotcorr\n", iter);
             rotsize = std::min(static_cast<int>(2 * radius + 1), height - 10);
             r2 = rotsize / 2;

@@ -32,6 +32,7 @@ void print_hint() {
     printf(" sirt --- 1, cgls --- 2\n");
     printf("pmethod: the method used to perform projections.");
     printf(" old --- 1, KB --- 2\n");
+    printf("align: alignment. 0: no 1: translation 2: translation+rotation\n");
 }
 
 int parse_keyvalue(arecparam *param, const char *key, const char *value, int &havedata) {
@@ -108,7 +109,7 @@ int parseinput(MPI_Comm comm, char *filename, arecparam *param) {
     param->rmethod = 2;
     param->pmethod = 1;
     param->thresh = 0.5;
-    param->align = 1;
+    param->align = 2;
 
     if (mypid == 0) {
         std::ifstream infile(filename);
