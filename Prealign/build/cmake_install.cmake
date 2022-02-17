@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/axela/Documents/GitHub/AREC3D/Prealign
+# Install script for directory: C:/Users/Axel/Documents/Github/AREC3D/Prealign
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/axela/Documents/GitHub/AREC3D/Prealign/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Axel/Documents/Github/AREC3D/Prealign/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
