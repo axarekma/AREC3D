@@ -3,7 +3,7 @@ CC := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 
 TARGET ?= ./bin/prealign
-SRC_DIRS ?= ./Prealign_2017/
+SRC_DIRS ?= ./Prealign/
 
 DEFINE = -DUSE_MPI
 INC_MPI = -I /usr/include/mpich/

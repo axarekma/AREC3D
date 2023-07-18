@@ -6,23 +6,22 @@
 using namespace std;
 
 template <class T> class image3d {
-  public:
-    vector<T> m_data;
-
   private:
     size_t m_nx;
     size_t m_ny;
     size_t m_nz;
 
   public:
+    vector<T> m_data;
     ~image3d(){};
 
-    image3d() : m_data(vector<T>()), m_nx(0), m_ny(0), m_nz(0){};
+    image3d() : m_nx(0), m_ny(0), m_nz(0),m_data(vector<T>()){};
 
-    image3d(int x, int y, int z) : m_data(vector<T>(x * y * z, {0})), m_nx(x), m_ny(y), m_nz(z){};
+    image3d(int x, int y, int z)
+        : m_nx(x), m_ny(y), m_nz(z),m_data(vector<T>((int64_t)x * y * z, {0})){};
 
     image3d(int x, int y, int z, T val)
-        : m_data(vector<T>(x * y * z, val)), m_nx(x), m_ny(y), m_nz(z){};
+        : m_nx(x), m_ny(y), m_nz(z),m_data(vector<T>(x * y * z, val)){};
 
     T operator()(int i, int j, int k) const {
         assert(i > 0 && i < m_nx);
@@ -61,7 +60,7 @@ template <class T> class image3d {
         return *this;
     }
     // move constructor
-    image3d(image3d &&a) : m_data{a.m_data}, m_nx{a.m_nx}, m_ny{a.m_ny}, m_nz{a.m_nz} {
+    image3d(image3d &&a) noexcept : m_nx{a.m_nx}, m_ny{a.m_ny}, m_nz{a.m_nz},m_data{a.m_data} {
 #ifdef DEBUG
         printf("move constructor\n");
 #endif // DEBUG

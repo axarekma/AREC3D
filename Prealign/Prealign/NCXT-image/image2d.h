@@ -11,12 +11,12 @@ template <class T> class image2d {
     unsigned int m_ny;
 
   public:
-    ~image2d(){};
     vector<T> m_data;
+    ~image2d(){};
 
-    image2d() : m_data(vector<T>()), m_nx(0), m_ny(0){};
-    image2d(int x, int y) : m_data(vector<T>(x * y, {0})), m_nx(x), m_ny(y){};
-    image2d(int x, int y, T val) : m_data(vector<T>(x * y, val)), m_nx(x), m_ny(y){};
+    image2d() : m_nx(0), m_ny(0),m_data(vector<T>()) {};
+    image2d(int x, int y) : m_nx(x), m_ny(y),m_data(vector<T>(x * y, {0})){};
+    image2d(int x, int y, T val) : m_nx(x), m_ny(y),m_data(vector<T>(x * y, val)){};
 
     void init(int x, int y, int z) { init(x, y, z, 0.0); }
     void init(int x, int y, int z, T val) {
@@ -37,8 +37,8 @@ template <class T> class image2d {
         int ybase = (int)y;
         // Because the interpolation fraction is positive,
         // base integer is bounded by n-2
-        if (xbase == m_nx - 1) xbase--;
-        if (ybase == m_ny - 1) ybase--;
+        if (xbase == static_cast<int>(m_nx) - 1) xbase--;
+        if (ybase == static_cast<int>(m_ny) - 1) ybase--;
 
         double xFraction = x - xbase;
         double yFraction = y - ybase;
@@ -63,7 +63,7 @@ template <class T> class image2d {
     T &operator()(int i, int j) {
         assert(i >= 0 && i < static_cast<int>(m_nx));
         assert(j >= 0 && j < static_cast<int>(m_ny));
-        return m_data[m_nx * j + i];
+        return m_data[(int64_t)m_nx * j + i];
     }
     T operator[](int i) const { return m_data[i]; }
     T &operator[](int i) { return m_data[i]; }
@@ -88,7 +88,7 @@ template <class T> class image2d {
         return *this;
     }
     // move constructor
-    image2d(image2d &&a) : m_data{a.m_data}, m_nx{a.m_nx}, m_ny{a.m_ny} {
+    image2d(image2d &&a) noexcept : m_nx{a.m_nx}, m_ny{a.m_ny},m_data{a.m_data} {
 #ifdef DEBUG
         printf("move constructor\n");
 #endif // DEBUG

@@ -23,11 +23,12 @@ struct vars_struct {
 };
 struct tube_data {
     // fitting parameters
-    double p1_left, p2_left, p1_err_left;
-    double p1_right, p2_right, p1_err_right;
+    double p1_left{}, p2_left{}, p1_err_left{};
+    double p1_right{}, p2_right{}, p1_err_right{};
+
     // limits
-    int min_left, max_right;
-    double COM;
+    int min_left{}, max_right{};
+    double COM{};
 
     tube_data() {}
 };
@@ -68,7 +69,7 @@ template <class T> void writeArray(T *data, char *file, size_t N) {
     }
     myfile.close();
 }
-int findMaxIndex(const float *data, size_t N);
+int findMaxIndex(const float *data, int N);
 
 // SLOPE FIT
 void printresult(double const *x, mp_result *result);
@@ -78,6 +79,7 @@ int fitRotation(std::vector<double> &x, std::vector<double> &y, std::vector<doub
 void linFitEdgeWerr(const int *data, int N, double &p1, double &p2, double &p1_err);
 void ransac(const int *Y, int size_Y, int iter, double TH, double &p1, double &p2);
 void cleanEdge(int *Y, int size_Y, double TH, double p1, double p2);
+void non_zero_limits(float *line, int length, int &pad1, int &pad2);
 
 // IMAGE OPERATORS
 typedef std::vector<image2d<float>> image_stack;
@@ -102,6 +104,8 @@ void writeAngles(const char *anglename, vector<double> angles);
 // PROFILE ALIGN
 float getLineMean(image_stack &img, int z, int y, int x_min, int x_max);
 void circShiftX(float *data, int length, int shift);
+void lerpShift(float *data, float *out, int length, double shift);
+
 double findMaxCC_fit(float const *p_cccoefs, int length);
 
 // Convolutions

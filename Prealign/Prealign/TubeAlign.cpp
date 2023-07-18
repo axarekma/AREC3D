@@ -10,12 +10,28 @@ TubeAlign::TubeAlign(image_stack &t_img, std::vector<double> &t_ang) : m_img(t_i
 
 TubeAlign::~TubeAlign() {}
 
+void TubeAlign::initialize_kernels(double sigma_canny, double sigma_profile) {
+
+    _edge_halfwidth = static_cast<int>(std::floor(n_sigma * sigma_canny));
+    _edge_kernel = getGaussianDerivateKernel(n_sigma, sigma_canny);
+
+    _profile_halfwidth = static_cast<int>(std::floor(n_sigma * sigma_profile));
+    _profile_kernel = getGaussianDerivateKernel(n_sigma, sigma_profile);
+
+    return;
+}
+void TubeAlign::set_padding(int pad_x, int pad_y) {
+    PAD_TUBE_EDGE = pad_x;
+    Y_PROFILE_PAD_VERTICAL = pad_y;
+    return;
+}
+
 void TubeAlign::savePreview(std::string file_name) {
     updatecapillary_data();
 
     image_stack temp = image_stack(m_img);
 
-    for (size_t iz = 0; iz < temp.size(); iz++) {
+    for (int iz = 0; iz < static_cast<int>(temp.size()); iz++) {
         float amax =
             static_cast<float>(*std::max_element(temp[iz].m_data.begin(), temp[iz].m_data.end()));
 
@@ -23,13 +39,18 @@ void TubeAlign::savePreview(std::string file_name) {
             int x_min = static_cast<int>(std::round(tube[iz].p1_left * yi + tube[iz].p2_left));
             int x_max = static_cast<int>(std::round(tube[iz].p1_right * yi + tube[iz].p2_right));
 
-            temp[iz](x_min, yi) = amax;
-            temp[iz](x_max, yi) = amax;
+            temp[iz](x_min, yi) = static_cast<float>(1.5 * amax);
+            temp[iz](x_max, yi) = static_cast<float>(1.5 * amax);
 
             temp[iz](x_min - 1, yi) = 0;
             temp[iz](x_max - 1, yi) = 0;
             temp[iz](x_min + 1, yi) = 0;
             temp[iz](x_max + 1, yi) = 0;
+
+            int e1, e2;
+            findEdgesOfLine(m_img, iz, yi, e1, e2);
+            if (0 <= e1 && e1 < temp[iz].nx() - 1) { temp[iz](e1, yi) = amax; }
+            if (0 <= e2 && e2 < temp[iz].nx() - 1) { temp[iz](e2, yi) = amax; }
         }
     }
 
@@ -147,9 +168,8 @@ double TubeAlign::profile_gc_img(image2d<float> &yprofiles) {
     double y_mean = getMeanValue(sY_temp.data(), prof_y);
 
     for (int j = 0; j < prof_y; j++) {
-        // sY_temp[j] -= 0.5 * (ymax + ymin);
         sY_temp[j] -= y_mean;
-        circShiftX(&yprofiles[prof_x * j], prof_x, static_cast<int>(std::round(sY_temp[j])));
+        // circShiftX(&yprofiles[prof_x * j], prof_x, static_cast<int>(std::round(sY_temp[j])));
         sY[j] -= sY_temp[j];
     }
 
@@ -187,15 +207,10 @@ double TubeAlign::profile_cc_img(image2d<float> &yprofiles) {
     double y_mean = getMeanValue(sY_temp.data(), prof_y);
 
     for (int j = 0; j < prof_y; j++) {
-        // sY_temp[j] -= 0.5 * (ymax + ymin);
         sY_temp[j] -= y_mean;
-
-        circShiftX(&yprofiles[prof_x * j], prof_x, +static_cast<int>(std::round(sY_temp[j])));
+        // circShiftX(&yprofiles[prof_x * j], prof_x, +static_cast<int>(std::round(sY_temp[j])));
         sY[j] -= sY_temp[j];
-        // if (j>90) printf("j: %d s=%4.2f  sg=%4.2f \n",j,sY_temp[j],sY[j]);
     }
-    // printf("Y shifts between %4.2f and %4.2f
-    // \n",getMinValue(sY_temp,prof_y),getMaxValue(sY_temp,prof_y));
 
     return fabs(ymax - ymin);
 }
@@ -228,9 +243,8 @@ image2d<float> TubeAlign::getProfiles() {
         /*For some cases the density profile doesn't work
         usually because of distinct background profiles.
         Better results were obtained by using the 1st derivative.*/
-        int halfkernel = static_cast<int>(std::floor(p_n_sigm * p_sigma));
-        vector<float> kernel = getGaussianDerivateKernel(p_n_sigm, p_sigma);
-        convolve_valid_inplace(&yprofiles[ny * iz], kernel.data(), 0.0, ny, halfkernel);
+        convolve_valid_inplace(&yprofiles[ny * iz], _profile_kernel.data(), 0.0, ny,
+                               _profile_halfwidth);
     }
     return yprofiles;
 }
@@ -249,29 +263,41 @@ vector<int> TubeAlign::getYTranslationsFromProfile() {
     vector<image2d<float>> stack_profile_gc_img;
 
     image2d<float> yprofiles = getProfiles();
-    saveProfile(yprofiles, "profile_RAW_new.png");
+    image2d<float> yprofiles_iter = getProfiles();
+
+    int prof_x = yprofiles.nx();
+    vector<int> retval(m_img.size());
+
+    saveProfile(yprofiles_iter, "profile_RAW_new.png");
 
     double val;
-    stack_profile_cc_img.push_back(yprofiles);
-    while ((val = profile_cc_img(yprofiles)) > 1.0) {
-        stack_profile_cc_img.push_back(yprofiles);
+    stack_profile_cc_img.push_back(yprofiles_iter);
+    while ((val = profile_cc_img(yprofiles_iter)) > 0.1) {
+        for (int j = 0; j < prof_y; j++) {
+            lerpShift(&yprofiles[prof_x * j], &yprofiles_iter[prof_x * j], prof_x, -sY[j]);
+        }
+        stack_profile_cc_img.push_back(yprofiles_iter);
         printf("Yalign_cc max shift is %4.2f pixels\n", val);
     }
-
     printf("Yalign_cc max shift is %4.2f pixels\n", val);
-    stack_profile_gc_img.push_back(yprofiles);
-    while ((val = profile_gc_img(yprofiles)) > 1.0) {
-        stack_profile_gc_img.push_back(yprofiles);
+
+    stack_profile_gc_img.push_back(yprofiles_iter);
+    int counter = 0;
+    while ((val = profile_gc_img(yprofiles_iter)) > 0.1) {
+        for (int j = 0; j < prof_y; j++) {
+            lerpShift(&yprofiles[prof_x * j], &yprofiles_iter[prof_x * j], prof_x, -sY[j]);
+        }
+        stack_profile_gc_img.push_back(yprofiles_iter);
         printf("Yalign max shift is %4.2f pixels\n", val);
+        if (counter++ > 20) break;
     }
     printf("Yalign max shift is %4.2f pixels\n", val);
 
-    saveProfile(yprofiles, "profile_ALIGNED_new.png");
+    saveProfile(yprofiles_iter, "profile_ALIGNED_new.png");
 
     writeImage_stream(combine_stack(stack_profile_cc_img), "stack_profile_cc_img.mrc");
     writeImage_stream(combine_stack(stack_profile_gc_img), "stack_profile_gc_img.mrc");
 
-    vector<int> retval(m_img.size());
     for (size_t i = 0; i < retval.size(); i++) {
         retval[i] = static_cast<int>(std::round(sY[i]));
     }
@@ -291,24 +317,9 @@ vector<int> TubeAlign::getXTranslationsFromProfile() {
 
 void TubeAlign::updatecapillary_data() {
 #pragma omp parallel for // differs from serial because random order in RANSAC, checked
-    for (int i = 0; i < m_img.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(m_img.size()); ++i) {
         tube[i] = getFittedSlopes(m_img, i);
     }
-
-    int edge_skip_left_new = m_img[0].nx();
-    int edge_skip_right_new = m_img[0].nx();
-
-    for (int i = 0; i < m_img.size(); ++i) {
-        edge_skip_left_new =
-            min(edge_skip_left_new, tube[i].min_left - static_cast<int>(sigma * 2 * n_sigma));
-        edge_skip_right_new =
-            min(edge_skip_right_new, static_cast<int>(m_img[0].nx()) - 1 - tube[i].max_right -
-                                         static_cast<int>(sigma * 2 * n_sigma));
-    }
-    edge_skip_left = max(edge_skip_left, edge_skip_left_new);
-    edge_skip_right = max(edge_skip_right, edge_skip_right_new);
-
-    printf("new edge skips %d %d\n", edge_skip_left, edge_skip_right);
 }
 
 double TubeAlign::getEdgeLeft(int zi, int yi) { return tube[zi].p1_left * yi + tube[zi].p2_left; }
@@ -365,49 +376,76 @@ capillary_data TubeAlign::getFittedSlopes(image_stack &t_img, int i) {
 }
 
 void TubeAlign::findEdgesOfLine(image_stack &img, int zi, int yi, int &e1, int &e2) {
-    int halfkernel = static_cast<int>(std::floor(n_sigma * sigma));
 
-    vector<float> vec_buffer = convolve_valid(&img[zi].m_data[yi * img[zi].nx()],
-                                              _edge_kernel.data(), 0.0f, img[zi].nx(), halfkernel);
-    float const *buffer = vec_buffer.data();
+    // determine edge skips
+    int skip_left = 0;
+    int skip_right = 0;
 
-    // find minmax
-    double min_val = buffer[halfkernel];
-    double max_val = buffer[halfkernel];
-    int min_ind = halfkernel;
-    int max_ind = halfkernel;
-    double l_lim = (1.0 / 3.0) * img[zi].nx();
-    double r_lim = (2.0 / 3.0) * img[zi].nx();
+    non_zero_limits(&img[zi].m_data[yi * img[zi].nx()], img[zi].nx(), skip_left, skip_right);
+    skip_left = std::min(skip_left, img[zi].nx() / 3) + _edge_halfwidth;
+    skip_right = std::min(skip_right, img[zi].nx() / 3) + _edge_halfwidth;
+    skip_left = std::max(skip_left, edge_skip_left);
+    skip_right = std::max(skip_right, edge_skip_right);
 
-    // todo use min_el
-    // auto test = std::min_element( vec_buffer.begin() + edge_skip_left, vec_buffer.end() -
-    // edge_skip_right) ;
+    vector<float> vec_buffer =
+        convolve_valid(&img[zi].m_data[yi * img[zi].nx()], _edge_kernel.data(), 0.0f, img[zi].nx(),
+                       _edge_halfwidth);
 
-    for (int j = edge_skip_left; j < img[zi].nx() - edge_skip_right; j++) {
-        // if (yi==500) printf("%d,%4.2f \n",j,buffer[j]);
-        if (buffer[j] < min_val && j > l_lim) {
-            min_val = buffer[j];
-            min_ind = j;
-        }
-        if (buffer[j] > max_val && j < r_lim) {
-            max_val = buffer[j];
-            max_ind = j;
-        }
-    }
-    // if lin
-    // e1=min_ind;
-    // e2=max_ind;
-    // if log
-    e2 = min_ind;
-    e1 = max_ind;
+    auto it_min = std::min_element(vec_buffer.begin() + skip_left, vec_buffer.end() - skip_right);
+    auto it_max = std::max_element(vec_buffer.begin() + skip_left, vec_buffer.end() - skip_right);
 
-    // cleanup clearly wrong edges
-    // double l_lim = (1.0 / 3.0)*img->nx;
-    // double r_lim = (2.0 / 3.0)*img->nx;
-    if (e2 < l_lim) e2 = -1;
-    if (e1 > r_lim) e1 = -1;
+    float val_min = *it_min;
+    float val_max = *it_max;
+    // int ind_min = static_cast<int>(std::distance(vec_buffer.begin(), it_min));
+    // int ind_max = static_cast<int>(std::distance(vec_buffer.begin(), it_max));
 
-    // delete[] X;
-    // 0delete[] Y;
-    // delete[] buffer;
+    auto it_first = std::find_if(vec_buffer.begin() + skip_left, vec_buffer.end(),
+                                 [&](float x) { return x > line_th * val_max; });
+
+    auto it_last = std::find_if(vec_buffer.rbegin() + skip_right, vec_buffer.rend(),
+                                [&](float x) { return x < line_th * val_min; });
+
+    int ind_left = static_cast<int>(std::distance(vec_buffer.begin(), it_first));
+    int ind_right = static_cast<int>(std::distance(it_last, vec_buffer.rend()) - 1);
+
+    e1 = ind_left;
+    e2 = ind_right;
+}
+
+void TubeAlign::updateMaxSkips() {
+    int maxneg = getMaxNegX();
+    int maxpos = getMaxPosX();
+
+    printf("getMaxNegX: %d getMaxPosX : %d \n", maxneg, maxpos);
+
+    edge_skip_left = _edge_halfwidth + std::max(0, maxneg);
+    edge_skip_right = _edge_halfwidth + std::max(0, maxpos);
+
+    printf("updateMaxSkips -> (%d -- %d) \n", edge_skip_left, edge_skip_right);
+}
+
+int TubeAlign::crop_limit_x(int width) {
+
+    auto it_min =
+        std::min_element(tube.begin(), tube.end(), [](capillary_data &lhs, capillary_data &rhs) {
+            return lhs.min_left < rhs.min_left;
+        });
+
+    auto it_max =
+        std::max_element(tube.begin(), tube.end(), [](capillary_data &lhs, capillary_data &rhs) {
+            return lhs.max_right < rhs.max_right;
+        });
+
+    int val_min = it_min->min_left;
+    int val_max = it_max->max_right;
+
+    int maxpad = std::min(val_min, width - val_max);
+
+    updateMaxSkips();
+    int minpad = std::max(edge_skip_left, edge_skip_right);
+
+    printf("max pad from capillary edges: %d\n", maxpad);
+    printf("min pad from translations : %d\n", minpad);
+
+    return (maxpad + minpad) / 2;
 }

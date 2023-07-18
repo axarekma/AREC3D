@@ -16,9 +16,12 @@
    $Id: mpfit.c,v 1.20 2010/11/13 08:15:35 craigm Exp $
  */
 
+
+
 #pragma warning(push)
 #pragma warning(disable : 26494 26481 26408 26496 26409 26493)
-#pragma warning(disable, 2134, )
+// #pragma warning(disable : 2134 )
+#pragma warning(disable : 4996 )
 
 #include "mpfit.h"
 #include <math.h>

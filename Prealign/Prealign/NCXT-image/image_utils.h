@@ -7,18 +7,6 @@
 
 #define PI 3.141502
 
-/*
-cannot define here, multiple definitions
-auto img_abs = [](auto x) -> auto { return abs(x); };
-auto img_exp = [](auto x) -> auto { return exp(x); };
-auto img_log = [](auto x) -> auto { return log(x); };
-auto img_pow2 = [](auto x) -> auto { return x*x; };
-auto img_abs_t = [](auto& x) { x = abs(x); };
-auto img_exp_t = [](auto& x) { x = exp(x); };
-auto img_log_t = [](auto& x) { x = log(x); };
-auto img_pow2_t = [](auto& x) { x = x*x; };
-/**/
-
 struct Coord2D {
     double x;
     double y;
@@ -85,8 +73,8 @@ template <class T> image2d<T> transform_clip(const image2d<T> &img, TransformMat
     double center_x = 0.5 * (img.nx() - 1);
     double center_y = 0.5 * (img.ny() - 1);
     auto img_out = image2d<T>(img.nx(), img.ny());
-    for (size_t j = 0; j < img.ny(); j++) {
-        for (size_t i = 0; i < img.nx(); i++) {
+    for (int j = 0; j < static_cast<int>(img.ny()); j++) {
+        for (int i = 0; i < static_cast<int>(img.nx()); i++) {
             Coord2D c = M.prod(Coord2D(1.0 * i - center_x, 1.0 * j - center_y));
             img_out(i, j) = img.blerp(c.x + center_x, c.y + center_y);
         }
@@ -118,8 +106,8 @@ template <class T> image3d<T> combine_stack(std::vector<image2d<T>> imgstack) {
         assert(img.ny() == ny);
     }
 
-    image3d<T> retval(nx, ny, imgstack.size());
-    for (int i = 0; i < imgstack.size(); i++) {
+    image3d<T> retval(nx, ny, static_cast<int>(imgstack.size()));
+    for (int i = 0; i < static_cast<int>(imgstack.size()); i++) {
         std::copy(imgstack[i].begin(), imgstack[i].end(), retval.it_slice(i));
     }
     return retval;

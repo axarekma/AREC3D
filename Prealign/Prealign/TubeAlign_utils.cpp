@@ -8,9 +8,12 @@
 #include <sstream>
 #include <vector>
 
+#pragma warning(push)
+#pragma warning(disable : 4996)
+
 typedef std::vector<image2d<float>> image_stack;
 
-int findMaxIndex(const float *data, size_t N) {
+int findMaxIndex(const float *data, int N) {
     float max_val = data[0];
     int max_ind = 0;
     for (int i = 0; i < N; i++) {
@@ -58,6 +61,10 @@ int rotationfunc(int m, int n, double *p, double *dy, double **dvec, void *vars)
     struct vars_struct *v = (struct vars_struct *)vars;
     double *x, *y, *ey;
 
+    //unused variables required by mpfit spec
+    (void)(dvec);
+    (void)(n);
+
     x = v->x;
     y = v->y;
     ey = v->ey;
@@ -71,10 +78,10 @@ int rotationfunc(int m, int n, double *p, double *dy, double **dvec, void *vars)
 int fitRotation(std::vector<double> &x, std::vector<double> &y, std::vector<double> &ey,
                 std::vector<double> &p, double &norm, bool verb) {
     const int npar = 3;
-    int N = x.size();
-    assert(y.size() == N);
-    assert(ey.size() == N);
-    assert(p.size() == npar);
+    int N = static_cast<int>(x.size());
+    assert(static_cast<int>(y.size()) == N);
+    assert(static_cast<int>(ey.size()) == N);
+    assert(static_cast<int>(p.size()) == npar);
 
     double perror[npar]; /* Returned parameter errors */
     mp_par pars[npar];   /* Parameter constraints */
@@ -178,7 +185,7 @@ void cleanEdge(int *Y, int size_Y, double TH, double p1, double p2) {
         if (abs(nVX * (j) + nVY * (Y[j] - p2)) > TH) Y[j] = -1;
 }
 
-    // IMAGE OPERATORS
+// IMAGE OPERATORS
 
 #define B(i) B[(i)-1]
 void PRB1D(double const *B, int NPOINT, double *POS) {
@@ -373,16 +380,10 @@ void writeInput(const char *dataname, const char *anglename) {
 void writeAngles(const char *anglename, vector<double> angles) {
     // make 0 0
     const double PI = 3.14159265359;
-    double const angle0 = angles[0];
-    for (int i = 0; i < angles.size(); i++) {
-        // printf("%d %4.2f -> %4.2f \n", i ,angles[i]*180/PI,
-        // fmod(angles[i]-angle0+4*PI,2*PI)*180/PI); angles[i] = fmod(angles[i] - angle0 + 4.0 *
-        // M_PI, 2.0 * M_PI);
-    }
 
     ofstream myfile;
     myfile.open(anglename);
-    for (int i = 0; i < angles.size(); i++) {
+    for (int i = 0; i < static_cast<int>(angles.size()); i++) {
         myfile << angles[i] * 180 / PI << "\n";
     }
     myfile.close();
@@ -394,7 +395,7 @@ void writePrealignment(const char *file, double rot, vector<int> sx, vector<int>
     filename << file;
     myfile.open(filename.str().c_str());
 
-    for (int i = 0; i < sx.size(); i++) {
+    for (int i = 0; i < static_cast<int>(sx.size()); i++) {
         myfile << rot << " " << sx[i] + sx2[i] << " " << sy[i] << "\n";
     }
     myfile.close();
@@ -413,13 +414,28 @@ void writeArray(double const *data, char *file, int N) {
 // PROFILE ALIGN
 float getLineMean(image_stack &img, int z, int y, int x_min, int x_max) {
     int nx = img[0].nx();
-    int ny = img[0].ny();
+    // int ny = img[0].ny();
 
     double sum = 0;
     for (int xi = x_min; xi < x_max; xi++)
         sum += img[z].m_data[nx * y + xi];
     return static_cast<float>(sum / (x_max - x_min));
 }
+
+void lerpShift(float *data, float *out, int length, double shift) {
+    for (int i = 0; i < length; i++) {
+        double x = (double)i - shift;
+        if (x < 0) { x = 0; }
+        if (x > length - 1) { x = (double)length - 1; }
+        int xbase = (int)x;
+        if (xbase == length - 1) xbase--;
+        double xFraction = x - xbase;
+        double left = data[xbase];
+        double right = data[xbase + 1];
+        out[i] = static_cast<float>(left + xFraction * (right - left));
+    }
+}
+
 void circShiftX(float *data, int length, int shift) {
     std::vector<float> buffer = std::vector<float>(abs(shift));
     /*
@@ -467,7 +483,7 @@ vector<float> getGaussianDerivateKernel(double n_sigma, double sigma) {
     const double PI = 3.14159265359;
 
     int halfkernel = static_cast<int>(std::floor(n_sigma * sigma));
-    size_t kernel_size = 2 * halfkernel + 1;
+    int kernel_size = 2 * halfkernel + 1;
     vector<float> Y(kernel_size, 0.0);
 
     for (int i = 0; i < kernel_size; i++) {
@@ -504,4 +520,13 @@ void convolve_valid_inplace(float *data, float *kernel, float fill_val, int len,
     // copy back
     for (int i = 0; i < len; i++)
         data[i] = buffer[i];
+}
+
+void non_zero_limits(float *data, int length, int &pad1, int &pad2) {
+    while (data[pad1] <= 0 && pad1 < length - 1) {
+        pad1++;
+    }
+    while (data[length - 1 - pad2] <= 0 && pad2 < length - 1) {
+        pad2++;
+    }
 }

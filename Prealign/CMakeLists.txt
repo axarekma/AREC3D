@@ -22,15 +22,15 @@ set(FFTW3l_DIR ${FFTW_ROOT}/fftw3l)
 
 
 set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-set(SRC_PATH "${PROJECT_PATH}/Prealign_2017")
-set(INCLUDE_PATH "${PROJECT_PATH}/Prealign_2017")
+set(SRC_PATH "${PROJECT_PATH}/Prealign")
+set(INCLUDE_PATH "${PROJECT_PATH}/Prealign")
 set(MAIN_NAME "${PROJECT_NAME}_main")
 set(LIB_PATH "${PROJECT_BINARY_DIR}/lib")
 set(LIB_NAME "${PROJECT_NAME}")
 
 
 set(MAIN_SRC
-  "${SRC_PATH}/Prealign_2017.cpp"
+  "${SRC_PATH}/Prealign.cpp"
 )
 set(SRC
   "${SRC_PATH}/mpfit.cpp"
@@ -39,6 +39,8 @@ set(SRC
 )
 
 include_directories(AFTER "${INCLUDE_PATH}")
+include_directories(SYSTEM "${PROJECT_PATH}/ext")
+
 add_library(${LIB_NAME} ${SRC})
 add_executable(${MAIN_NAME} ${MAIN_SRC})
 
@@ -48,3 +50,8 @@ find_package(FFTW3f CONFIG REQUIRED)
 target_link_libraries(${LIB_NAME} PRIVATE FFTW3::fftw3f)
 target_link_libraries(${MAIN_NAME} PRIVATE ${LIB_NAME} FFTW3::fftw3)
 
+if(MSVC)
+  target_compile_options(${MAIN_NAME} PRIVATE /W4 )
+else()
+  target_compile_options(${MAIN_NAME} PRIVATE -Wall -Wextra -Wpedantic )
+endif()
