@@ -9,6 +9,8 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+runpre.bat
+
 build/
 temp/
 .vs/
